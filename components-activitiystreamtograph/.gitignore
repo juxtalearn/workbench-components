@@ -1,0 +1,7 @@
+/target
+/.settings
+/.classpath
+/.project
+/sqlspaces.log
+/sqlspaces.log.1
+/sqlspaces.log.lck
