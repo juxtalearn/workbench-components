@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.juxtalearn.rias</groupId>
+	<artifactId>components-visualizationtoserver</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Visualization to Server</name>
+	<description>Uploads the the visualized results of a analysis process to a web service (JxL specific)</description>
+	<repositories>
+		<repository>
+			<id>closed-snapshots</id>
+			<name>Collide Closed Snapshots</name>
+			<url>http://mvn.collide.info/content/repositories/closedsnapshots</url>
+		</repository>
+	</repositories>
+	<parent>
+		<groupId>eu.sisob</groupId>
+		<artifactId>components</artifactId>
+		<version>c-1.0.2-SNAPSHOT</version>
+	</parent>
+	<dependencies>
+		<dependency>
+			<groupId>eu.sisob</groupId>
+			<artifactId>components-framework</artifactId>
+			<version>c-1.0.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.yahoo.platform.yui</groupId>
+			<artifactId>yuicompressor</artifactId>
+			<version>2.4.7</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.javascript</groupId>
+			<artifactId>closure-compiler</artifactId>
+			<version>v20131014</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.7.3</version>
+		</dependency>
+	</dependencies>
+</project>
