@@ -26,10 +26,10 @@ import eu.sisob.components.framework.Agent;
 class Node {
 	public enum NodeTypes{
 		ACTOR("actor",0),
-		OBJECT("object",1),
-		FILE("file",2),
-		BLOG("blog",3),
-		COMMENT("comment",4);
+		FILE("file",1),
+		BLOG("blog",2),
+		COMMENT("generic_comment",3),
+		FIVESTAR("fivestar",4);
 		private String typeString;
 		private int typeNumber;
 		private NodeTypes(String typeString, int typenumber){
@@ -81,7 +81,7 @@ class Node {
 		this.type = type;
 		this.clusters = new JSONArray();
 		if(cluster != "") {
-			this.clusters.put(Integer.parseInt(cluster));			
+			this.clusters.put(NodeTypes.getEnum(this.type).getTypeNumber());			
 		}
 		
 	}
@@ -93,7 +93,7 @@ class Node {
 			returnJSON.put("label", this.label);
 			returnJSON.put("type", NodeTypes.getEnum(this.type).getTypeNumber());
 			returnJSON.put("clusters", ((JSONArray)new JSONArray()).put(this.clusters));
-			//returnJSON.put("timeappearance", this.timeappearance);
+			returnJSON.put("timeappearance", ((JSONArray)new JSONArray()).put(this.timeappearance+"-"+Long.MAX_VALUE));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -325,11 +325,11 @@ public class ActivitystreamToGraphAgent extends Agent{
 				sisobGraphFormat.put("metadata", new JSONObject());
 				((JSONObject)sisobGraphFormat.get("metadata")).put("title", getValueOrEmptyString(fetchedTupleData, "filename"));
 				((JSONObject)sisobGraphFormat.get("metadata")).put("directed", "true");
-				((JSONObject)sisobGraphFormat.get("metadata")).put("type", "2 mode network");
+				((JSONObject)sisobGraphFormat.get("metadata")).put("type", "6 mode network");
 				((JSONObject)sisobGraphFormat.get("metadata")).put("datalinks", ((JSONArray)new JSONArray()).put("0.json"));
 				JSONObject weightMeasure = new JSONObject();
-				weightMeasure.put("title", "edge weight");
-				weightMeasure.put("description", "weight describes occurrence of this activity");
+				weightMeasure.put("title", "weight");
+				weightMeasure.put("description", "weight describes the occurrences of this edge in the activitystream");
 				weightMeasure.put("class", "edge");
 				weightMeasure.put("property", "weight");
 				weightMeasure.put("type", "integer");
@@ -345,6 +345,7 @@ public class ActivitystreamToGraphAgent extends Agent{
 				//JSONArray edges = new JSONArray();
 				EdgeList edges = new EdgeList();
 				//there can be collisions between actor id and object id, so there are actor nodes and object nodes, at the end they are merged
+				//Edit by Oliver: This is wrong, but separate lists will be kept for separation reasons
 				NodeList actorNodes = new NodeList();
 				NodeList objectNodes = new NodeList();
 				int z = 0;
@@ -354,61 +355,97 @@ public class ActivitystreamToGraphAgent extends Agent{
 					//filter join and leave verbs
 					if(!filedataElement.get("verb").toString().equals("join") && !filedataElement.get("verb").toString().equals("leave")) {
 						if(filedataElement.has("actor") && filedataElement.has("object") && filedataElement.has("verb")) {
+							//We can always create the actor node, 
+							//but the object nodes and edges will be different depending on the activity beeing an annotation or not							
 							actorNodes.addElement(new Node(
-									"a_" + getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "displayName"),
-									"actor_" + getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "displayName"),
+									getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "actorId"),
+									getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "displayName"),
 									"",
 									"actor",
 									getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "groupId")
 								)
 							);
 							//The Object "worked" on
-							objectNodes.addElement(new Node(
-									"o_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
-									"object_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId") + "_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectType") + "_" + filedataElement.get("verb").toString(),
-									"",
-									"object",
-									getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "groupId")
-								));
-							edges.addEdge(new Edge(
-									getValueOrEmptyString(filedataElement, "transactionId"),
-									filedataElement.get("verb").toString(),
-									"a_" + getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "displayName"),
-									"o_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
-									getValueOrEmptyString(filedataElement, "published")
-								)
-							);
-							//If Verb is annotate
+							//If Verb is annotate we need to create the ao Edge to the targetId, else it will be made to the objectId
 							//annotate is add of fivestar raking, comment or like
 							if(filedataElement.get("verb").equals("annotate")) {
-								//In targetID is the id of the new comment, this create a new object node from the fivestar ranking, comment or like
+								//This is the annotation node, due to elggs id system, we need to add prefix a_ for annotations
+//								if (getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectSubtype").equals("null")) {
+//									System.out.println("Subtype missing: " + getValueOrEmptyString(filedataElement, "transactionId"));
+//									System.out.println(((JSONObject)filedataElement).toString());
+//								}
 								objectNodes.addElement(new Node(
-									"c_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
-									"comment_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
+										"a_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectSubtype"),
+										getValueOrEmptyString(filedataElement, "published"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectSubtype"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "groupId")
+									));
+								//This is the object node
+								//targetID is the id of the annotated object, so we need to create this object if it doesnt already exist
+								//This can only happen in incomplete activitystreams! Otherwise the object will be created beforehand
+//								if (getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetName").equals("null")) {
+//									System.out.println("targetname missing: " + getValueOrEmptyString(filedataElement, "transactionId"));
+//									System.out.println(((JSONObject)filedataElement).toString());
+//								}
+								
+								objectNodes.addElement(new Node(
+									getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
+									getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetName"),
 									"",
-									"comment",
+									getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetSubtype"),
 									getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "groupId")
 								));
 								//this add an edge between the Actor and the new object (fivestar, comment or like)
 								edges.addEdge(new Edge(
-										getValueOrEmptyString(filedataElement, "transactionId"),
-										filedataElement.get("verb").toString(),
-										"a_" + getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "displayName"),
-										"c_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
+										"ac_" + getValueOrEmptyString(filedataElement, "transactionId"),
+										"create",
+										getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "actorId"),
+										"a_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
 										getValueOrEmptyString(filedataElement, "published")
 								));
-								//this add an edge between the new Object(fivestar, comment or like) and the Object worked on
+								//this add an edge between the Actor and the annotated object
 								edges.addEdge(new Edge(
-										getValueOrEmptyString(filedataElement, "transactionId"),
+										"ao_" + getValueOrEmptyString(filedataElement, "transactionId"),
 										filedataElement.get("verb").toString(),
-										"c_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
-										"o_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "actorId"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
+										getValueOrEmptyString(filedataElement, "published")
+								));
+								//this add an edge between the annotation(fivestar, comment or like) and the Object worked on
+								edges.addEdge(new Edge(
+										"co_" + getValueOrEmptyString(filedataElement, "transactionId"),
+										filedataElement.get("verb").toString(),
+										"a_" + getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "targetId"),
 										getValueOrEmptyString(filedataElement, "published")
 								));
 							}
+							else {
+//								if (getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "displayName").equals("null")) {
+//									System.out.println("displayName missing: " + getValueOrEmptyString(filedataElement, "transactionId"));
+//									System.out.println(((JSONObject)filedataElement).toString());
+//								}
+								objectNodes.addElement(new Node(
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "displayName"),
+										getValueOrEmptyString(filedataElement, "published"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectSubtype"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "groupId")
+									));
+								edges.addEdge(new Edge(
+										"ao_" + getValueOrEmptyString(filedataElement, "transactionId"),
+										filedataElement.get("verb").toString(),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("actor")), "actorId"),
+										getValueOrEmptyString(((JSONObject)filedataElement.get("object")), "objectId"),
+										getValueOrEmptyString(filedataElement, "published")
+									)
+								);
+
+							}
 						}
 					}
-					
+					z++;
 				}
 				System.out.println(z);
 				
@@ -432,11 +469,11 @@ public class ActivitystreamToGraphAgent extends Agent{
 			this.uploadResults();
 			
 		} catch (JSONException e) {
-			this.indicateError(e.getMessage());
-			e.printStackTrace();
+			this.indicateError(e.getMessage(), e);
 		} catch (TupleSpaceException e) {
-			this.indicateError(e.getMessage());
-			e.printStackTrace();
+			this.indicateError(e.getMessage(), e);
+		} catch (Exception e) {
+			this.indicateError("Error:", e);
 		}
 		
 		
