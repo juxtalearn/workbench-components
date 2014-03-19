@@ -11,6 +11,7 @@ import eu.sisob.components.framework.AgentManager;
 import eu.sisob.components.framework.componentdescription.Container;
 import eu.sisob.components.framework.componentdescription.Filter;
 import eu.sisob.components.framework.componentdescription.Input;
+import eu.sisob.components.framework.componentdescription.IntField;
 import eu.sisob.components.framework.componentdescription.StringField;
 
 public class VisualizationToServerManager extends AgentManager{
@@ -40,8 +41,9 @@ public class VisualizationToServerManager extends AgentManager{
 		JSONArray outputs = null;
 		JSONArray fields = new JSONArray();
 		
-		fields.add(new StringField("ReturnURL: ", "value1", false));
-
+		fields.add(new StringField("ReturnURL: ", "value1", true));
+		fields.add(new IntField("ReturnId: ", "value2", false));
+		fields.add(new StringField("AuthToken: ", "value3",false));
 		//fields.add(new BooleanField("Location is file","value3",true,false));
 		String description = null;
 		String shortDescription_legend = "This agent saves the html results to TupleSpace.";
@@ -57,7 +59,7 @@ public class VisualizationToServerManager extends AgentManager{
 	
 	public static void main(String[] args) {
         //AgentManager proManager = new VisualizationToServerManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Visualization To Server", String.class, String.class), VisualizationToServer.class.getName(), "localhost", 2525);
-        AgentManager proManager = new VisualizationToServerManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Visualization To Server", String.class, String.class), VisualizationToServer.class.getName(), "analyticstk.rias-institute.eu", 2525);
+        AgentManager proManager = new VisualizationToServerManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Visualization To Server", String.class, String.class), VisualizationToServer.class.getName(), "192.168.1.21", 32525);
         proManager.initialize();
         Thread runtime = new Thread(proManager);
         runtime.start();

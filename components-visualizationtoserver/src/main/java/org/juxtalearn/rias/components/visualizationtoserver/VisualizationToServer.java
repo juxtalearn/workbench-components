@@ -1,28 +1,29 @@
 package org.juxtalearn.rias.components.visualizationtoserver;
 
+import info.collide.sqlspaces.client.TupleSpace;
+import info.collide.sqlspaces.commons.Field;
+import info.collide.sqlspaces.commons.Tuple;
+import info.collide.sqlspaces.commons.TupleSpaceException;
+import info.collide.sqlspaces.commons.util.Base64;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-
 import java.util.Date;
 import java.util.List;
-
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -32,30 +33,37 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
-import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.EvaluatorException;
-import org.w3c.dom.CDATASection;
 
 import com.yahoo.platform.yui.compressor.CssCompressor;
-import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 
-import info.collide.sqlspaces.client.TupleSpace;
-import info.collide.sqlspaces.commons.Field;
-import info.collide.sqlspaces.commons.Tuple;
-import info.collide.sqlspaces.commons.TupleSpaceException;
 import eu.sisob.components.framework.Agent;
 import eu.sisob.components.framework.SISOBProperties;
 
-class PlaceHolderFile {
+/* default */ class PlaceHolderFile {
 	public String placeholderName;
 
 	public String fileData;
 }
-
+/**
+ * This Agent sends an assembled visualization to a server specified by a <emph>returnURL</emph>
+ * via a POST call with the following parameters:
+ * <ul>
+ * <li><b>returnId</b> used to map this result to the corresponding analysis request.</li>
+ * <li><b>data</b> Base64 encoded analysis result. Most often an HTML snippet that visualizes the result.</li>
+ * <li><b>statuscode</b> a status code telling the remote server if the analysis workflow was successful. In case of failure <emph>data</emph> may contain an error message instead of the expected analysis result.</li> 
+ * <li><b>auth_token</b> a security token that authenticates this agent against the remote API </li>
+ * </ul>
+ * @author Malzahn
+ * @author Wenzel
+ *
+ */
 public class VisualizationToServer extends Agent {
 
 	private int errorCallbackNo;
 
+	private  String authToken = SISOBProperties.getProperty("components.visualizationtoserver.auth_token", ""); 
+	
 	public VisualizationToServer(Tuple commandTuple, String serverlocation,
 			int port) {
 		super(commandTuple, serverlocation, port);
@@ -118,14 +126,16 @@ public class VisualizationToServer extends Agent {
 		String parameters = this.getCommandTupleStructure().getField(6)
 				.getValue().toString();
 		if(parameters.trim() != "") {
+			String[] params = parameters.split(",");
 			ts.write(new Tuple(this.commandTupleStructure
-					.getField(0).getValue().toString(), parameters, ""));
+					.getField(0).getValue().toString(), params[0], params.length>1?params[1]:""));
 		}
 	}
 	
 	@Override
 	public void executeAgent(Tuple fetchedTuple) {
 		this.indicateRunning();
+		TupleSpace ts = null;
 		try {
 			// 0 = host
 			// 1 = port
@@ -133,7 +143,7 @@ public class VisualizationToServer extends Agent {
 			
 			String data = generateHTMLData(fetchedTuple);
 
-			TupleSpace ts = new TupleSpace(super.serverLocation, super.port, "ClipitRequests");
+			 ts = new TupleSpace(super.serverLocation, super.port, "ClipitRequests");
 			
 			//If there are Parameters from NodeWorkbench Visual Komponent, write them to ClipitRequests
 			writeParameterTupleToClipitRequests(ts);
@@ -148,21 +158,29 @@ public class VisualizationToServer extends Agent {
 				String returnId = clipitRequestTuple.getField(2).getValue()
 						.toString();
 				String returnValue = postToURL(url, returnId, data, 3);
-				logger.fine(returnValue);
+				logger.fine("Remote server returned:\"" + returnValue +"\"");
 			}
 
 			this.indicateDone();
 
 		} catch (JSONException e) {
-			this.indicateError(e.getMessage());
+			this.indicateError(e.getMessage(),e);
 			e.printStackTrace();
 		} catch (IOException e) {
-			this.indicateError(e.getMessage());
+			this.indicateError(e.getMessage(),e);
 			e.printStackTrace();
 		} catch (TupleSpaceException e) {
-			this.indicateError(e.getMessage());
+			this.indicateError(e.getMessage(),e);
 		}
-
+		finally {
+			if ( ts != null ){
+				try {
+					ts.disconnect();
+				} catch (TupleSpaceException e) {
+					this.indicateError("TupleSpace shut down failed",e);
+				}
+			}
+		}
 	}
 
 	public String postToURL(String urlString, String returnId, String data,
@@ -176,9 +194,9 @@ public class VisualizationToServer extends Agent {
 		
 
 		String body = "returnId=" + URLEncoder.encode(returnId, "UTF-8") + "&"
-				+ "data=" + URLEncoder.encode(data, "UTF-8") + "&"
-				+ "statuscode=" + URLEncoder.encode(Integer.toString(status), "UTF-8");
-
+				+ "data=" + URLEncoder.encode(Base64.encodeToString(data.getBytes(), true), "UTF-8") + "&"
+				+ "statuscode=" + URLEncoder.encode(Integer.toString(status), "UTF-8") +"&" 
+				+ "auth_token=" + URLEncoder.encode(authToken,"UTF-8");
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
 		connection.setDoInput(true);
