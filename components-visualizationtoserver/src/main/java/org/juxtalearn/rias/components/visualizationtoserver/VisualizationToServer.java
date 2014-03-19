@@ -129,6 +129,15 @@ public class VisualizationToServer extends Agent {
 			String[] params = parameters.split(",");
 			ts.write(new Tuple(this.commandTupleStructure
 					.getField(0).getValue().toString(), params[0], params.length>1?params[1]:""));
+			logger.info("*"+authToken);
+			if (params.length > 2) {
+				logger.info("*"+authToken);
+				if ( !"".equals(params[2].trim())) {
+					authToken = params[2];
+					
+				}
+				logger.info("**"+authToken);
+			}
 		}
 	}
 	
@@ -190,8 +199,7 @@ public class VisualizationToServer extends Agent {
 			urlString = "http://" + urlString;
 		}
 		URL url = new URL(urlString);
-		System.out.println(urlString);
-		
+		logger.finest("Contacting: "+urlString + " ReturnID="+returnId + " statuscode="+status + " auth_token="+authToken);
 
 		String body = "returnId=" + URLEncoder.encode(returnId, "UTF-8") + "&"
 				+ "data=" + URLEncoder.encode(Base64.encodeToString(data.getBytes(), true), "UTF-8") + "&"

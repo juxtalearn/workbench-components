@@ -45,8 +45,8 @@ public class VisualizationToServerManager extends AgentManager{
 		fields.add(new IntField("ReturnId: ", "value2", false));
 		fields.add(new StringField("AuthToken: ", "value3",false));
 		//fields.add(new BooleanField("Location is file","value3",true,false));
-		String description = null;
-		String shortDescription_legend = "This agent saves the html results to TupleSpace.";
+		String description = "If you provide an AuthToken, you have to provide ReturnId, too!";
+		String shortDescription_legend = "This agent stores the resulting html to a remote server.";
 		
 		Container container = new Container(shortDescription_legend,description,inputs,outputs,fields);
 		Filter filter = new Filter("Visualization To Server", "Output", container);
