@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.juxtalearn.rias.components</groupId>
+  <artifactId>components-mapmode</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>Map Mode</name>
+  <description>Agent that reduces the mode of a network by transforming one mode into another (no folding!)</description>
+  <repositories>
+		<repository>
+			<id>closed-snapshots</id>
+			<name>Collide Closed Snapshots</name>
+			<url>http://mvn.collide.info/content/repositories/closedsnapshots</url>
+		</repository>
+	</repositories>
+	<parent>
+		<groupId>eu.sisob</groupId>
+		<artifactId>components</artifactId>
+		<version>c-1.0.2-SNAPSHOT</version>
+	</parent>
+  <dependencies>
+		<dependency>
+			<groupId>eu.sisob</groupId>
+			<artifactId>components-framework</artifactId>
+			<version>c-1.0.2-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>
