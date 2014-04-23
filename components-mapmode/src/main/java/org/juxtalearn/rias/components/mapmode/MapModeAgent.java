@@ -35,10 +35,9 @@ public class MapModeAgent extends Agent {
         targetMode = Integer.parseInt(params[1]);
 
     }
-
+    @SuppressWarnings(value = { "unchecked" })
     protected void transformData() {
 
-        System.out.println(graphData);
         JSONArray jsonFiledata = null;
         JSONParser parser = new JSONParser();
         try {
@@ -47,7 +46,7 @@ public class MapModeAgent extends Agent {
             indicateError(e.getMessage(), e);
         }
         if (jsonFiledata != null) {
-            /* reduce graph mode by 1 */
+           
             String fileDataString = (String) ((JSONObject) jsonFiledata.get(0)).get("filedata");
 
             JSONObject jsonGraphdata = null;
@@ -57,30 +56,36 @@ public class MapModeAgent extends Agent {
                 indicateError(e.getMessage(), e);
             }
             if (jsonGraphdata != null) {
-                JSONObject jsonMetadata = (JSONObject) jsonGraphdata.get("metadata");
-                String graphType = (String) jsonMetadata.get("type");
-                int indx = graphType.indexOf("mode network");
-                int oldType = Integer.parseInt(graphType.substring(0, indx-1));
-                String newType = Integer.toString(oldType - 1) + " mode network";
-                jsonMetadata.put("type", newType);
-
+                boolean atLeastOneReplacement = false;
                 /* re-mapping of node types */
                 JSONObject data = (JSONObject) jsonGraphdata.get("data");
                 JSONArray nodes = (JSONArray) data.get("nodes");
                 for (Object rawnode : nodes) {
                     JSONObject node = (JSONObject) rawnode;
+                    /* transform node of type sourceMode to targetMode */
                     if (node.containsKey("type")) {
                         if (sourceMode.equals(node.get("type"))) {
                             node.put("type", targetMode);
+                            atLeastOneReplacement = true;
                         }
                     }
                 }
-                ((JSONObject) jsonFiledata.get(0)).put("filedata",jsonGraphdata.toJSONString());
+                if (atLeastOneReplacement) {
+                    /* reduce graph mode by 1 */
+                    JSONObject jsonMetadata = (JSONObject) jsonGraphdata.get("metadata");
+                    String graphType = (String) jsonMetadata.get("type");
+                    int indx = graphType.indexOf("mode network");
+                    int oldType = Integer.parseInt(graphType.substring(0, indx - 1));
+                    String newType = Integer.toString(oldType - 1) + " mode network";
+                    jsonMetadata.put("type", newType);
+                    
+                    /* write/store changes */
+                    ((JSONObject) jsonFiledata.get(0)).put("filedata", jsonGraphdata.toJSONString());
+                    graphData = jsonFiledata.toJSONString();
+                }
             }
-            graphData = jsonFiledata.toJSONString();
         }
 
-        System.out.println(graphData);
     }
 
     @Override
@@ -97,7 +102,6 @@ public class MapModeAgent extends Agent {
     @Override
     public void executeAgent(ArrayList<Tuple> fetchedTuples) {}
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void uploadResults() {
         fetchedTuple.getField(3).setValue(graphData);
