@@ -30,7 +30,7 @@ public class MapModeManager extends AgentManager {
         agent.initializeAgent();
         Thread runtime = new Thread(agent);
         runtime.start();
-        logger.finer("SaveProcess agent started " + agent.getClass().getName());
+        logger.finer("MapMode agent started " + agent.getClass().getName());
     }
 
     public static void main(String[] args) {
