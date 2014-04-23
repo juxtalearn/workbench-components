@@ -7,14 +7,18 @@
 			<url>http://mvn.collide.info/content/repositories/closedsnapshots</url>
 		</repository>
 	</repositories>
-  <parent>
+ <!--  <parent>
     <groupId>eu.sisob</groupId>
     <artifactId>components</artifactId>
     <version>c-1.0.2-SNAPSHOT</version>
-  </parent>
-  <groupId>org.juxtalearn.rias</groupId>
+  </parent> 
+ -->
+ <parent>
+    <groupId>org.juxtalearn.rias</groupId>
+    <artifactId>components-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent> 
   <artifactId>components-activitiystreamtograph</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
   <name>Juxta Activitystream to Graph</name>
   <description>This Converter converts Juxta-ActivityStream to SISOB Graph Data</description>
   <dependencies>
@@ -22,6 +26,11 @@
   		<groupId>eu.sisob</groupId>
   		<artifactId>components-framework</artifactId>
   		<version>c-1.0.2-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.juxtalearn.rias</groupId>
+  		<artifactId>components-commons</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
   	</dependency>
   </dependencies>
 </project>
