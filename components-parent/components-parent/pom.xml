@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.juxtalearn.rias</groupId>
+	<artifactId>components-parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>components-parent</name>
+	<description>Parent pom for RIAS's components</description>
+
+	<repositories>
+		<repository>
+			<id>closed-snapshots</id>
+			<name>Collide Closed Snapshots</name>
+			<url>http://mvn.collide.info/content/repositories/closedsnapshots</url>
+		</repository>
+	</repositories>
+	<parent>
+		<groupId>eu.sisob</groupId>
+		<artifactId>components</artifactId>
+		<version>c-1.0.2-SNAPSHOT</version>
+	</parent>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
