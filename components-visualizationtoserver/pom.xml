@@ -1,9 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.juxtalearn.rias</groupId>
 	<artifactId>components-visualizationtoserver</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>Visualization to Server</name>
 	<description>Uploads the the visualized results of a analysis process to a web service (JxL specific)</description>
 	<repositories>
@@ -14,9 +12,9 @@
 		</repository>
 	</repositories>
 	<parent>
-		<groupId>eu.sisob</groupId>
-		<artifactId>components</artifactId>
-		<version>c-1.0.2-SNAPSHOT</version>
+		<groupId>org.juxtalearn.rias</groupId>
+		<artifactId>components-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<dependencies>
 		<dependency>
