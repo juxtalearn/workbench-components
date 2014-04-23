@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<repositories>
+		<repository>
+			<id>closed-snapshots</id>
+			<name>Collide Closed Snapshots</name>
+			<url>http://mvn.collide.info/content/repositories/closedsnapshots</url>
+		</repository>
+	</repositories>
+	<parent>
+		<groupId>org.juxtalearn.rias</groupId>
+		<artifactId>components-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>components-commons</artifactId>
+
+	<name>Common API</name>
+	<packaging>jar</packaging>
+	<description>API definitions shared between several agents of RIAS's framework</description>
+
+</project>
