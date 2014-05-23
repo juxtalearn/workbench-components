@@ -71,5 +71,5 @@ public class ActivitystreamToGraphManager extends AgentManager {
 	        Thread runtime = new Thread(proManager);
 	        runtime.start();
 	        
-	    }
+	}
 }
