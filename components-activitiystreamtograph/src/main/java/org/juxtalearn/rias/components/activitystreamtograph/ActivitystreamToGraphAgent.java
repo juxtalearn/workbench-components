@@ -11,58 +11,14 @@ import java.util.TreeMap;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.juxtalearn.rias.components.commons.NodeTypes;
 
 import eu.sisob.components.framework.Agent;
 
 public class ActivitystreamToGraphAgent extends Agent {
 
-    public enum NodeTypes {
-        ACTOR("actor", 0),
-        FILE("file", 1),
-        BLOG("blog", 2),
-        COMMENT("generic_comment", 3),
-        FIVESTAR("fivestar", 4),
-        NONE("none", 10),
-        MEMBER("member_of_site", 15),
-        READYET("readYet", 20),
-        SIMPLETYPE("simpletype", 25);
-
-        private String typeString;
-
-        private int typeNumber;
-
-        private NodeTypes(String typeString, int typenumber) {
-            this.typeString = typeString;
-            this.typeNumber = typenumber;
-        }
-
-        public String getTypeString() {
-            return typeString;
-        }
-
-        public int getTypeNumber() {
-            return typeNumber;
-        }
-
-        public static NodeTypes getEnum(int typeNumber) {
-            NodeTypes[] arr = NodeTypes.values();
-            for (int i = 0; i < arr.length; i++) {
-                if (typeNumber == arr[i].getTypeNumber())
-                    return arr[i];
-            }
-            return null;
-        }
-
-        public static NodeTypes getEnum(String typeString) {
-            NodeTypes[] arr = NodeTypes.values();
-            for (int i = 0; i < arr.length; i++) {
-                if (typeString.equals(arr[i].getTypeString()))
-                    return arr[i];
-            }
-            System.err.println("Could not find: " + typeString);
-            return null;
-        }
-    }
 
     protected class NodeList {
 
@@ -156,6 +112,8 @@ public class ActivitystreamToGraphAgent extends Agent {
         
         private int weight = 0;
         
+        private float semanticRichness = 0f;
+        
         private String content="";
         
 
@@ -190,7 +148,19 @@ public class ActivitystreamToGraphAgent extends Agent {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    default:
+                case COMMENT:
+                    if (object.has("Properties")) {
+                          try {
+                              JSONObject properties = object.getJSONObject("Properties");
+                              this.semanticRichness = Float.parseFloat(properties.getString("SemanticRichness"));
+                          } 
+                          catch (NumberFormatException e) {
+                          } 
+                          catch (JSONException e) {
+                          }
+                    }
+
+                default:
                     try {
                         this.content = object.getString("content");
                     } catch (JSONException e) {
@@ -215,6 +185,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                 returnJSON.put("content",this.content);
                 returnJSON.put("timeappearance", timeappearance);// ((JSONArray) new JSONArray()).put(this.timeappearance + "-" + Long.MAX_VALUE));
                 returnJSON.put("weight", Integer.toString(this.weight));
+                returnJSON.put("SemanticRichness", Float.toString(this.semanticRichness));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -419,6 +390,13 @@ public class ActivitystreamToGraphAgent extends Agent {
         weightMeasure.put("property", "weight");
         weightMeasure.put("type", "integer");
         measures.put(weightMeasure);
+        JSONObject semanticRichness = new JSONObject();
+        semanticRichness.put("title", "SemanticRichness");
+        semanticRichness.put("description", "Semantic Richness describes the occurrences of domain concepts in this activity");
+        semanticRichness.put("class", "node");
+        semanticRichness.put("property", "SemanticRichness");
+        semanticRichness.put("type", "float");
+        measures.put(semanticRichness);
         
         
         metadata.put("measures", measures);
@@ -482,17 +460,40 @@ public class ActivitystreamToGraphAgent extends Agent {
 
                         if ("annotate".equals(verb)) {
                             String targetId = getValueOrEmptyString(object, "targetId");
-                            NodeTypes targetType = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
-                            objectNodes.addElement(new Node("a_" + objectId, objectSubType.getTypeString(), published, objectSubType, groupId,object));
+                            NodeTypes targetSubtype = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
+                            String objectLabel = objectSubType.getTypeString();
+                            String targetNodeId = targetId;
+                            String targetName = getValueOrEmptyString(object, "targetName");
+                            if (targetSubtype.equals(NodeTypes.COMMENT)) {
+                                targetNodeId = "c_" + targetNodeId;
+                            }
+                            else {
+                                targetName = targetSubtype.getTypeString();
+                            }
+//                            if (object.has("Properties")) {
+//                                JSONObject properties = new JSONObject(); 
+//                                properties = object.getJSONObject("Properties");
+//                                objectLabel = properties.getString("SemanticRichness");
+//                            }
+                            
+                            if (object.has("content")) {
+                                String content = object.getString("content");
+                                content = java.net.URLDecoder.decode(content, "UTF-8");
+                                Document dirty = Jsoup.parse(content);
 
-                            objectNodes.addElement(new Node(targetId, getValueOrEmptyString(object, "targetName"), "", targetType, groupId,object));
+                                objectLabel = dirty.text().substring(0,19);
+                            }
+                            
+                            objectNodes.addElement(new Node("c_" + objectId, objectLabel, published, objectSubType, groupId,object));
+                            
+                            objectNodes.addElement(new Node(targetNodeId, targetName, "", targetSubtype, groupId,object));
                             // this add an edge between the Actor and the new object (fivestar, comment or like)
 
-                            edges.addEdge(new Edge("ac_" + transactionId, "create", actorId, "a_" + objectId, published));
+                            edges.addEdge(new Edge("ac_" + transactionId, "create", actorId, targetNodeId, published));
                             // this add an edge between the Actor and the annotated object
-                            edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, targetId, published));
+                            edges.addEdge(new Edge("ao_" + transactionId, verb, actorId,  "c_" + objectId, published));
                             // this add an edge between the annotation(fivestar, comment or like) and the Object worked on
-                            edges.addEdge(new Edge("co_" + transactionId, verb, "a_" + objectId, targetId, published));
+                            edges.addEdge(new Edge("co_" + transactionId, verb, "c_" + objectId, targetNodeId, published));
                         } else {
                             objectNodes.addElement(new Node(objectId, getValueOrEmptyString(object, "displayName"), published, objectSubType, groupId, object));
                             edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));

@@ -1,0 +1,32 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <repositories>
+		<repository>
+			<id>closed-snapshots</id>
+			<name>Collide Closed Snapshots</name>
+			<url>http://mvn.collide.info/content/repositories/closedsnapshots</url>
+		</repository>
+	</repositories>
+ <parent>
+    <groupId>org.juxtalearn.rias</groupId>
+    <artifactId>components-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent> 
+  <groupId>org.juxtalearn.rias</groupId>
+  <artifactId>components-semanticrichness</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>JuxtaLearn Semantic Richness</name>
+  <description>This agent evaluates semantic richness of comments from a given Juxta-ActivityStream</description>
+  <dependencies>
+  	<dependency>
+  		<groupId>eu.sisob</groupId>
+  		<artifactId>components-framework</artifactId>
+  		<version>c-1.0.2-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.jsoup</groupId>
+  		<artifactId>jsoup</artifactId>
+  		<version>1.7.3</version>
+  	</dependency>
+  </dependencies>
+</project>
