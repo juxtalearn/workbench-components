@@ -3,18 +3,25 @@ package org.juxtalearn.rias.components.commons;
 
 public enum NodeTypes {
     ACTOR("actor", 0),
+    STUDENT("student",0),
+    TEACHER("teacher",0),
+    USER("ClipitUser",0),
     FILE("file", 1),
     BLOG("blog", 2),
-    COMMENT("clipit_post", 3),
+    COMMENT("ClipitPost", 3),
     FIVESTAR("fivestar", 4),
-    ACTIVITY("clipit_activity", 5),
-    GROUP("clipit_group", 6),
+    ACTIVITY("ClipitActivity", 5),
+    GROUP("ClipitGroup", 6),
     COURSE("clipit_course", 7),
     MESSAGE("message", 8),
+    VIDEO("ClipitVideo",9),
     NONE("none", 10),
+    TAG("ClipitTag",11),
+    TASK("ClipitTask",12),
     MEMBER("member_of_site", 15),
     READYET("readYet", 20),
-    SIMPLETYPE("simpletype", 25);
+    SIMPLETYPE("simpletype", 25),
+    UNKNOWN("UNKNOWN",100);
 
     private String typeString;
 
@@ -49,6 +56,6 @@ public enum NodeTypes {
                 return arr[i];
         }
         System.err.println("Could not find: " + typeString);
-        return null;
+        return UNKNOWN;
     }
 }

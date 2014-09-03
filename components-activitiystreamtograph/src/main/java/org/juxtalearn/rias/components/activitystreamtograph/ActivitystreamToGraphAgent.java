@@ -458,7 +458,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                         String groupId = getValueOrEmptyString(object, "groupId");
                         networkmodes.add(objectSubType);
 
-                        if ("annotate".equals(verb)) {
+                        if ("ClipitActivity".equals(verb)) {
                             String targetId = getValueOrEmptyString(object, "targetId");
                             NodeTypes targetSubtype = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
                             String objectLabel = objectSubType.getTypeString();
