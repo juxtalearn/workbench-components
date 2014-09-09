@@ -3,10 +3,8 @@ package org.juxtalearn.rias.components.commons;
 
 public enum NodeTypes {
     ACTOR("actor", 0),
-    STUDENT("student",0),
-    TEACHER("teacher",0),
     USER("ClipitUser",0),
-    FILE("file", 1),
+    FILE("ClipitFile", 1),
     BLOG("blog", 2),
     COMMENT("ClipitPost", 3),
     FIVESTAR("fivestar", 4),
@@ -16,12 +14,16 @@ public enum NodeTypes {
     MESSAGE("message", 8),
     VIDEO("ClipitVideo",9),
     NONE("none", 10),
-    TAG("ClipitTag",11),
     TASK("ClipitTask",12),
+    STORYBOARD("ClipitStoryboard",13),
     MEMBER("member_of_site", 15),
     READYET("readYet", 20),
     SIMPLETYPE("simpletype", 25),
-    UNKNOWN("UNKNOWN",100);
+    TRICKYTOPIC("ClipitTrickyTopic",31),
+    TAG("ClipitTag",32),
+    TEACHER("teacher",50),
+    STUDENT("student",51),
+    UNKNOWN("Unknown",100);
 
     private String typeString;
 
