@@ -50,12 +50,12 @@ public enum NodeTypes {
         }
         return null;
     }
-
+    
     public static NodeTypes getEnum(String typeString) {
         NodeTypes[] arr = NodeTypes.values();
         for (int i = 0; i < arr.length; i++) {
             if (typeString.equals(arr[i].getTypeString()))
-                return arr[i];
+                return getEnum(arr[i].getTypeNumber());
         }
         System.err.println("Could not find: " + typeString);
         return UNKNOWN;

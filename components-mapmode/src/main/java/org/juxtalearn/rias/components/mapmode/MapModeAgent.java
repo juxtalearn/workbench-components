@@ -38,7 +38,7 @@ public class MapModeAgent extends Agent {
         for (int i = 0; i < sourceModeStrings.length; i++) {
             sourceMode.add(Long.parseLong(sourceModeStrings[i]));
         }
-
+        logger.info(sourceMode.toString());
         targetMode = Long.parseLong(params[1]);
 
     }
@@ -59,13 +59,14 @@ public class MapModeAgent extends Agent {
 
             JSONObject jsonGraphdata = null;
             try {
+                Object o = parser.parse(fileDataString);
                 jsonGraphdata = (JSONObject) parser.parse(fileDataString);
             } catch (ParseException e) {
                 indicateError(e.getMessage(), e);
             }
             if (jsonGraphdata != null) {
                 TreeSet<Long> replacedTypes = new TreeSet<Long>();
-                boolean isTargetModeNew = false;
+                boolean isTargetModeNew = true;
                 /* re-mapping of node types */
                 JSONObject data = (JSONObject) jsonGraphdata.get("data");
                 JSONArray nodes = (JSONArray) data.get("nodes");
@@ -90,9 +91,17 @@ public class MapModeAgent extends Agent {
                     int indx = graphType.indexOf("mode network");
                     int oldType = Integer.parseInt(graphType.substring(0, indx - 1));
                     String newType = null;
+                    StringBuffer logInfo = new StringBuffer();
+                    for (long type : replacedTypes) {
+                        logInfo.append(type).append(" ");
+                    }
+                    
+                    logger.info("Replaced "+replacedTypes.size() + " types:"+logInfo.toString());
                     if (isTargetModeNew || sourceMode.contains(targetMode)) {
+                        logger.info("Added a new type!");
                         newType = Integer.toString(oldType - replacedTypes.size() + 1) + " mode network";
                     } else {
+                        logger.info("Just projected to  an existing type!");
                         newType = Integer.toString(oldType - replacedTypes.size()) + " mode network";
                     }
                     jsonMetadata.put("type", newType);
