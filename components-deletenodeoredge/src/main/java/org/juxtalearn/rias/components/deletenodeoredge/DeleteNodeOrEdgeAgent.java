@@ -21,7 +21,10 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 	protected String graphData;
 
 	protected Tuple fetchedTuple, commandTuple;
+	/* delete nodes or edges? */
 	protected boolean deleteNodes = true;
+	/* delete entries or keep them */
+	protected boolean deleteEntries = true;
 
 	public DeleteNodeOrEdgeAgent(Tuple commandTuple, String serverlocation,
 			int port) {
@@ -35,10 +38,13 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 		String[] params = this.getCommandTupleStructure().getField(6)
 				.getValue().toString().split(",");
 		/* TODO what about multiple params (more than nodes/edges)? */
-		if (!params[params.length - 1].equals("Nodes")) {
+		if (!params[params.length - 2].equals("Nodes")) {
 			deleteNodes = false;
-
 		}
+		if (params[params.length - 1].equals("false")) {
+			deleteEntries = false;
+		}
+
 		// logger.info("Delete what? => " + params[params.length-1] +
 		// " | deleteNodes: "+deleteNodes);
 		String[] deleteTypeStrings = params[0].split(";");
@@ -105,8 +111,18 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 							// e.g. Edges
 							nodeType = (String) element.get("type");
 						}
-						if (!deleteType.contains(nodeType)) {
-							newData.add(element);
+
+						// delete or keep them?
+						if (deleteEntries) {
+							// delete
+							if (!deleteType.contains(nodeType)) {
+								newData.add(element);
+							}
+						} else {
+							// keep
+							if (deleteType.contains(nodeType)) {
+								newData.add(element);
+							}
 						}
 					} else {
 						/*
