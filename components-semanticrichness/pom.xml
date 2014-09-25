@@ -27,6 +27,12 @@
   		<groupId>org.jsoup</groupId>
   		<artifactId>jsoup</artifactId>
   		<version>1.7.3</version>
-  	</dependency>
+	</dependency>
+	<dependency>
+               <groupId>org.juxtalearn.rias</groupId>
+               <artifactId>components-commons</artifactId>
+               <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
   </dependencies>
 </project>

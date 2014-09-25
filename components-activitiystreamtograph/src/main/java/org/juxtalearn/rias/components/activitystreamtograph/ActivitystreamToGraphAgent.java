@@ -64,6 +64,8 @@ public class ActivitystreamToGraphAgent extends Agent {
                 }
                 
                 current.weight = current.weight>other.weight?current.weight:other.weight;
+                
+                current.label = "".equals(current.label)?other.label:current.label;
 
             }
         }
@@ -112,11 +114,13 @@ public class ActivitystreamToGraphAgent extends Agent {
             
         private JSONArray clusters;
         
-        private int weight = 0;
+        private int weight = 1;
         
         private float semanticRichness = 0f;
         
         private String content="";
+        
+        private String objectType = NodeTypes.NONE.getTypeString();
         
 
         /**
@@ -135,12 +139,14 @@ public class ActivitystreamToGraphAgent extends Agent {
             this.timeappearance = new JSONArray();
             this.timeappearance.put(timeappearance);
             this.type = type;
+            this.objectType = type.getTypeString();
             this.clusters = new JSONArray();
             if (cluster != "") {
                 this.clusters.put(this.type.getTypeNumber());
             }
 
         }
+        
         public Node(String id, String label, String timeappearance, NodeTypes type, String cluster, JSONObject object) {
             this(id,label,timeappearance,type,cluster);
             switch(type) {
@@ -182,8 +188,9 @@ public class ActivitystreamToGraphAgent extends Agent {
             try {
                 returnJSON.put("id", this.id);
                 returnJSON.put("label", this.label);
-                returnJSON.put("type", this.type.getTypeNumber());
-                returnJSON.put("clusters", ((JSONArray) new JSONArray()).put(this.clusters));
+                returnJSON.put("type", Integer.toString(this.type.getTypeNumber()));
+               //returnJSON.put("clusters", ((JSONArray) new JSONArray()).put(this.clusters)); //XXX
+                returnJSON.put("objectType", this.objectType);
                 returnJSON.put("content",this.content);
                 returnJSON.put("timeappearance", timeappearance);// ((JSONArray) new JSONArray()).put(this.timeappearance + "-" + Long.MAX_VALUE));
                 returnJSON.put("weight", Integer.toString(this.weight));
@@ -317,6 +324,8 @@ public class ActivitystreamToGraphAgent extends Agent {
                 result.put("source", this.source);
                 result.put("target", this.target);
                 result.put("label", this.label);
+                //Edit by Oliver: Edge gets its label from the verb, so it might make sense to set the edges type to the verb as well
+                result.put("type", this.label); 
                 result.put("weight", Integer.toString(this.weight));
                 result.put("timeappearance", ((JSONArray) new JSONArray()).put(timeappearance));
             } catch (JSONException e) {
@@ -405,6 +414,7 @@ public class ActivitystreamToGraphAgent extends Agent {
         JSONArray nodeprop = new JSONArray();
         nodeprop.put(new JSONObject().put("clusters", "array"));
         nodeprop.put(new JSONObject().put("content","string"));
+        nodeprop.put(new JSONObject().put("objecttype","string"));
         metadata.put("nodeproperties", nodeprop);
 
         return metadata;
@@ -446,6 +456,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                         // but the object nodes and edges will be different depending on the activity being an annotation or not
                         JSONObject actor = filedataElement.getJSONObject("actor");
                         String actorId = getValueOrEmptyString(actor, "actorId");
+                        
                         objectNodes.addElement(new Node(actorId, getValueOrEmptyString(actor, "displayName"), "", NodeTypes.ACTOR, getValueOrEmptyString(actor, "groupId")));
                         // The Object "worked" on
                         // If Verb is annotate we need to create the ao Edge to the targetId, else it will be made to the objectId
@@ -490,7 +501,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                                 content = java.net.URLDecoder.decode(content, "UTF-8");
                                 Document dirty = Jsoup.parse(content);
                                 if (!dirty.text().isEmpty()) {
-                                    objectLabel = dirty.text().substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, dirty.text().length()-1));
+                                    objectLabel = dirty.text().substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, dirty.text().length())-1);
                                 }
                             }
                             
@@ -508,7 +519,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                         } else if ("create".equals(verb)) {
                             String objectName = getValueOrEmptyString(object, "objectTitle");
                             if (!objectName.isEmpty()) {
-                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length()-1));
+                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length())-1);
                             }
                             objectNodes.addElement(new Node(objectId, objectName, published, objectSubType, groupId));
                             edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
@@ -534,10 +545,10 @@ public class ActivitystreamToGraphAgent extends Agent {
                             String objectTitle = getValueOrEmptyString(object, "objectTitle");
                             String targetTitle = getValueOrEmptyString(object, "targetTitle");
                             if (!objectTitle.isEmpty()) {
-                                objectTitle = objectTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectTitle.length()-1));
+                                objectTitle = objectTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectTitle.length())-1);
                             }
                             if (!targetTitle.isEmpty()) {
-                                targetTitle = targetTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, targetTitle.length()-1));
+                                targetTitle = targetTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, targetTitle.length())-1);
                             }
 
                             networkmodes.add(targetSubtype);
@@ -549,13 +560,13 @@ public class ActivitystreamToGraphAgent extends Agent {
                         } else if ("upload".equals(verb)) {
                             String objectName = getValueOrEmptyString(object, "objectTitle");
                             if (!objectName.isEmpty()) {
-                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length()-1));
+                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length())-1);
                             }
                             objectNodes.addElement(new Node(objectId, objectName, published, objectSubType, groupId));
                             edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
                         }
                         else {
-                            objectNodes.addElement(new Node(objectId, getValueOrEmptyString(object, "displayName"), published, objectSubType, groupId));
+                            objectNodes.addElement(new Node(objectId, getValueOrEmptyString(object, "objectTitle"), published, objectSubType, groupId));
                             edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
                         }
                     }
