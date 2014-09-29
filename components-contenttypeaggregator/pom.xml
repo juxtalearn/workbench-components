@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>components-contenttypeaggregator</artifactId>
 	<name>Contenttype Aggregator</name>
-	<description>Agent that deletes nodes/edges of transferred type</description>
+	<description>Test</description>
 	<repositories>
 		<repository>
 			<id>closed-snapshots</id>
