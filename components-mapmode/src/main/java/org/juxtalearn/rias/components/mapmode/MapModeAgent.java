@@ -16,9 +16,9 @@ import eu.sisob.components.framework.Agent;
 
 public class MapModeAgent extends Agent {
 
-    protected TreeSet<Long> sourceMode;
+    protected TreeSet<String> sourceMode;
 
-    protected Long targetMode;
+    protected String targetMode;
 
     protected String graphData;
 
@@ -33,13 +33,12 @@ public class MapModeAgent extends Agent {
 
         String[] params = this.getCommandTupleStructure().getField(6).getValue().toString().split(",");
         String[] sourceModeStrings = params[0].split(";");
-        sourceMode = new TreeSet<Long>();
+        sourceMode = new TreeSet<String>();
 
         for (int i = 0; i < sourceModeStrings.length; i++) {
-            sourceMode.add(Long.parseLong(sourceModeStrings[i]));
+            sourceMode.add(sourceModeStrings[i]);
         }
-        logger.info(sourceMode.toString());
-        targetMode = Long.parseLong(params[1]);
+        targetMode = params[1];
 
     }
 
@@ -65,7 +64,7 @@ public class MapModeAgent extends Agent {
                 indicateError(e.getMessage(), e);
             }
             if (jsonGraphdata != null) {
-                TreeSet<Long> replacedTypes = new TreeSet<Long>();
+                TreeSet<String> replacedTypes = new TreeSet<String>();
                 boolean isTargetModeNew = true;
                 /* re-mapping of node types */
                 JSONObject data = (JSONObject) jsonGraphdata.get("data");
@@ -75,7 +74,7 @@ public class MapModeAgent extends Agent {
                     JSONObject node = (JSONObject) rawnode;
                     /* transform node of type sourceMode to targetMode */
                     if (node.containsKey("type")) {
-                        Long nodeType = (Long) node.get("type");
+                        String nodeType = (String) node.get("type");
                         if (sourceMode.contains(nodeType)) {
                             node.put("type", targetMode);
                             replacedTypes.add(nodeType);
@@ -92,16 +91,14 @@ public class MapModeAgent extends Agent {
                     int oldType = Integer.parseInt(graphType.substring(0, indx - 1));
                     String newType = null;
                     StringBuffer logInfo = new StringBuffer();
-                    for (long type : replacedTypes) {
+                    for (String type : replacedTypes) {
                         logInfo.append(type).append(" ");
                     }
                     
-                    logger.info("Replaced "+replacedTypes.size() + " types:"+logInfo.toString());
+                    logger.fine("Replaced "+replacedTypes.size() + " types:"+logInfo.toString());
                     if (isTargetModeNew || sourceMode.contains(targetMode)) {
-                        logger.info("Added a new type!");
                         newType = Integer.toString(oldType - replacedTypes.size() + 1) + " mode network";
                     } else {
-                        logger.info("Just projected to  an existing type!");
                         newType = Integer.toString(oldType - replacedTypes.size()) + " mode network";
                     }
                     jsonMetadata.put("type", newType);
@@ -122,7 +119,6 @@ public class MapModeAgent extends Agent {
         transformData();
         this.uploadResults();
         this.indicateDone();
-        System.out.println("finished");
 
     }
 
