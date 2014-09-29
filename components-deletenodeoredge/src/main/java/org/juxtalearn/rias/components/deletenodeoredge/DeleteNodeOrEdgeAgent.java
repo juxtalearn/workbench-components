@@ -5,6 +5,7 @@ import info.collide.sqlspaces.commons.Tuple;
 import info.collide.sqlspaces.commons.TupleSpaceException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 import org.json.simple.JSONArray;
@@ -49,18 +50,9 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 		// " | deleteNodes: "+deleteNodes);
 		String[] deleteTypeStrings = params[0].split(";");
 
-		if (deleteNodes) {
-			// Nodes -> Type = Long
-			deleteType = new TreeSet<Long>();
-			for (int i = 0; i < deleteTypeStrings.length; i++) {
-				deleteType.add(Long.parseLong(deleteTypeStrings[i]));
-			}
-		} else {
-			// e.g. Edges -> Type = String
-			deleteType = new TreeSet<String>();
-			for (int i = 0; i < deleteTypeStrings.length; i++) {
-				deleteType.add(deleteTypeStrings[i]);
-			}
+		deleteType = new TreeSet<String>();
+		for (int i = 0; i < deleteTypeStrings.length; i++) {
+			deleteType.add(deleteTypeStrings[i]);
 		}
 		logger.info("Type(s) to delete: " + deleteType.toString());
 
@@ -103,14 +95,7 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 				for (Object rawelement : oldData) {
 					JSONObject element = (JSONObject) rawelement;
 					if (element.containsKey("type")) {
-						Object nodeType = null;
-						if (deleteNodes) {
-							// Nodes
-							nodeType = (Long) element.get("type");
-						} else {
-							// e.g. Edges
-							nodeType = (String) element.get("type");
-						}
+						String nodeType = (String) element.get("type");
 
 						// delete or keep them?
 						if (deleteEntries) {
@@ -134,9 +119,29 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 					}
 				}
 
-				/* replace data */
-				if (deleteNodes) {
+				if (deleteNodes) { 
+					// look at the edges
+					JSONArray oldEdges = (JSONArray) data.get("edges");
+					HashMap<String, Boolean> hm = new HashMap<>();
+					JSONArray newEdges = new JSONArray();
+					for (Object rawelement : newData) {
+						JSONObject element = (JSONObject) rawelement;
+						String nodeId = element.get("id").toString();
+						hm.put(nodeId, true);
+					}
+
+					for (Object rawEdge : oldEdges) {
+						JSONObject edge = (JSONObject) rawEdge;
+						String source = edge.get("source").toString();
+						String target = edge.get("target").toString();
+						if (hm.containsKey(source) && hm.containsKey(target)) {
+							newEdges.add(edge);
+						}
+					}
+
+					/* replace data */
 					data.put("nodes", newData);
+					data.put("edges", newEdges);
 				} else {
 					data.put("edges", newData);
 				}
