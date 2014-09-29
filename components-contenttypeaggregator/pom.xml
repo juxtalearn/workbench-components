@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>components-contenttypeaggregator</artifactId>
 	<name>Contenttype Aggregator</name>
-	<description>Test</description>
+	<description>Aggregator</description>
 	<repositories>
 		<repository>
 			<id>closed-snapshots</id>
