@@ -1,4 +1,4 @@
-package org.juxtalearn.rias.components.deletenodeoredge;
+package org.juxtalearn.rias.components.contenttypeaggregator;
 import info.collide.sqlspaces.commons.Tuple;
 
 import java.util.ArrayList;
@@ -16,26 +16,26 @@ import eu.sisob.components.framework.componentdescription.IntField;
 import eu.sisob.components.framework.componentdescription.Output;
 import eu.sisob.components.framework.componentdescription.SelectField;
 
-public class DeleteNodeOrEdgeManager extends AgentManager {
+public class ContentTypeAggregatorManager extends AgentManager {
 
-    public DeleteNodeOrEdgeManager(Tuple templateCommandTuple, String mngId, String serverlocation, int port) {
+    public ContentTypeAggregatorManager(Tuple templateCommandTuple, String mngId, String serverlocation, int port) {
         super(templateCommandTuple, mngId, serverlocation, port);
     }
 
 
     @Override
     protected void createAgent(Tuple commandTuple) {
-        Agent agent = new DeleteNodeOrEdgeAgent(commandTuple, super.getServerLocation(), super.getServerPort());
+        Agent agent = new ContentTypeAggregatorAgent(commandTuple, super.getServerLocation(), super.getServerPort());
         this.getAgentsList().add(agent);
         agent.setAgentListener(this);
         agent.initializeAgent();
         Thread runtime = new Thread(agent);
         runtime.start();
-        logger.finer("DeleteNodeOrEdge agent started " + agent.getClass().getName());
+        logger.finer("ContentTypeAggregator agent started " + agent.getClass().getName());
     }
 
     public static void main(String[] args) {
-        AgentManager proManager = new DeleteNodeOrEdgeManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Delete Node/Edge", String.class, String.class), DeleteNodeOrEdgeManager.class.getName(), "localhost", 32525);
+        AgentManager proManager = new ContentTypeAggregatorManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Delete Node/Edge", String.class, String.class), DeleteNodeOrEdgeManager.class.getName(), "localhost", 32525);
         //AgentManager proManager = new DeleteNodeOrEdgeManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Delete Node/Edge", String.class, String.class), DeleteNodeOrEdgeManager.class.getName(), "192.168.1.21", 32525);
         proManager.initialize();
         Thread runtime = new Thread(proManager);
