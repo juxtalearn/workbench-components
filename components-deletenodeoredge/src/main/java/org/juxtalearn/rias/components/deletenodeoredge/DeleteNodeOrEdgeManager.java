@@ -8,6 +8,7 @@ import org.json.simple.JSONArray;
 
 import eu.sisob.components.framework.Agent;
 import eu.sisob.components.framework.AgentManager;
+import eu.sisob.components.framework.componentdescription.BooleanField;
 import eu.sisob.components.framework.componentdescription.Container;
 import eu.sisob.components.framework.componentdescription.Filter;
 import eu.sisob.components.framework.componentdescription.Input;
@@ -52,6 +53,7 @@ public class DeleteNodeOrEdgeManager extends AgentManager {
                 JSONArray fields = new JSONArray();
                 fields.add(new IntField("Type(s): ", "value1", true));
                 fields.add(new SelectField("Elements to be deleted:", "elementtype", true, new String[]{"Nodes","Edges"}));
+                fields.add(new BooleanField("Delete these types?:", "invertdeletion", true, true));
                 //fields.add(new IntField("Target Mode", "value2", true));
                 String description = "This filter deletes every node/edge of transferred type(s)." ;
                 String shortDescription_legend = "Deletes all nodes/edges of transferred type(s).";
