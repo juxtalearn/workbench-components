@@ -29,12 +29,12 @@ public enum NodeTypes {
 
     private String typeString;
     private int typeNumber;
-    private boolean isActor;
+    private boolean isUser;
 
-    private NodeTypes(String typeString, int typenumber, boolean isActor) {
+    private NodeTypes(String typeString, int typenumber, boolean isUser) {
         this.typeString = typeString;
         this.typeNumber = typenumber;
-        this.isActor = isActor;
+        this.isUser = isUser;
     }
 
     public String getTypeString() {
@@ -64,7 +64,7 @@ public enum NodeTypes {
         return UNKNOWN;
     }
 
-	public boolean getIsActor() {
-		return isActor;
+	public boolean getIsUser() {
+		return isUser;
 	}
 }
