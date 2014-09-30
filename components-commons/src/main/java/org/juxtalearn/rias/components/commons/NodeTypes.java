@@ -2,38 +2,39 @@ package org.juxtalearn.rias.components.commons;
 
 
 public enum NodeTypes {
-    ACTOR("actor", 0),
-    USER("ClipitUser",0),
-    FILE("ClipitFile", 1),
-    BLOG("blog", 2),
-    COMMENT("ClipitComment", 3),
-    FIVESTAR("fivestar", 4),
-    ACTIVITY("ClipitActivity", 5),
-    GROUP("ClipitGroup", 6),
-    COURSE("clipit_course", 7),
-    MESSAGE("message", 8),
-    VIDEO("ClipitVideo",9),
-    NONE("none", 10),
-    POST("ClipitPost", 11),
-    TASK("ClipitTask",12),
-    STORYBOARD("ClipitStoryboard",13),
-    MEMBER("member_of_site", 15),
-    PERFORMANCE("ClipitPerformance",33),
-    READYET("readYet", 20),
-    SIMPLETYPE("simpletype", 25),
-    TRICKYTOPIC("ClipitTrickyTopic",31),
-    TAG("ClipitTag",32),
-    TEACHER("teacher",50),
-    STUDENT("student",51),
-    UNKNOWN("Unknown",100);
+    ACTOR("actor", 0, true),
+    USER("ClipitUser",0, true),
+    FILE("ClipitFile", 1, false),
+    BLOG("blog", 2, false),
+    COMMENT("ClipitComment", 3, false),
+    FIVESTAR("fivestar", 4, false),
+    ACTIVITY("ClipitActivity", 5, false),
+    GROUP("ClipitGroup", 6, false),
+    COURSE("clipit_course", 7, false),
+    MESSAGE("message", 8, false),
+    VIDEO("ClipitVideo",9, false),
+    NONE("none", 10, false),
+    POST("ClipitPost", 11, false),
+    TASK("ClipitTask",12, false),
+    STORYBOARD("ClipitStoryboard",13, false),
+    MEMBER("member_of_site", 15, false),
+    PERFORMANCE("ClipitPerformance",33, false),
+    READYET("readYet", 20, false),
+    SIMPLETYPE("simpletype", 25, false),
+    TRICKYTOPIC("ClipitTrickyTopic",31, false),
+    TAG("ClipitTag",32, false),
+    TEACHER("teacher",50, true),
+    STUDENT("student",51, true),
+    UNKNOWN("Unknown",100, false);
 
     private String typeString;
-
     private int typeNumber;
+    private boolean isActor;
 
-    private NodeTypes(String typeString, int typenumber) {
+    private NodeTypes(String typeString, int typenumber, boolean isActor) {
         this.typeString = typeString;
         this.typeNumber = typenumber;
+        this.isActor = isActor;
     }
 
     public String getTypeString() {
@@ -62,4 +63,8 @@ public enum NodeTypes {
         System.err.println("Could not find: " + typeString);
         return UNKNOWN;
     }
+
+	public boolean getIsActor() {
+		return isActor;
+	}
 }
