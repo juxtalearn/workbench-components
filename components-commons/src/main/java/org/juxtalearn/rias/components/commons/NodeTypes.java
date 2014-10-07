@@ -11,7 +11,7 @@ public enum NodeTypes {
     ACTIVITY("ClipitActivity", 5),
     GROUP("ClipitGroup", 6),
     COURSE("clipit_course", 7),
-    MESSAGE("message", 8),
+    MESSAGE("ClipitChat", 8),
     VIDEO("ClipitVideo",9),
     NONE("none", 10),
     POST("ClipitPost", 11),
