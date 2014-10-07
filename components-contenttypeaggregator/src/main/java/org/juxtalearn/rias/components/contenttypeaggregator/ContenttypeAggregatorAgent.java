@@ -1,4 +1,4 @@
-package org.juxtalearn.rias.components.deletenodeoredge;
+package org.juxtalearn.rias.components.contenttypeaggregator;
 
 import info.collide.sqlspaces.commons.Field;
 import info.collide.sqlspaces.commons.Tuple;
@@ -15,7 +15,7 @@ import org.json.simple.parser.ParseException;
 
 import eu.sisob.components.framework.Agent;
 
-public class DeleteNodeOrEdgeAgent extends Agent {
+public class ContentTypeAggregatorAgent extends Agent {
 
 	protected TreeSet deleteType;
 
@@ -27,7 +27,7 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 	/* delete entries or keep them */
 	protected boolean deleteEntries = true;
 
-	public DeleteNodeOrEdgeAgent(Tuple commandTuple, String serverlocation,
+	public ContentTypeAggregatorAgent(Tuple commandTuple, String serverlocation,
 			int port) {
 		super(commandTuple, serverlocation, port);
 		this.commandTuple = commandTuple;
