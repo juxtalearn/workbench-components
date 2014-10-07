@@ -11,7 +11,7 @@ public enum NodeTypes {
     ACTIVITY("ClipitActivity", 5, false),
     GROUP("ClipitGroup", 6, false),
     COURSE("clipit_course", 7, false),
-    MESSAGE("message", 8, false),
+    MESSAGE("ClipitChat", 8, false),
     VIDEO("ClipitVideo",9, false),
     NONE("none", 10, false),
     POST("ClipitPost", 11, false),
@@ -64,7 +64,7 @@ public enum NodeTypes {
         return UNKNOWN;
     }
 
-	public boolean getIsUser() {
+	public boolean isUser() {
 		return isUser;
 	}
 }
