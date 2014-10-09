@@ -284,6 +284,15 @@ public class ActivitystreamToGraphAgent extends Agent {
             this.timeappearance = timeappearance;
         }
 
+        public Edge(String label, String source, String target, String timeappearance) {
+            this.id = label + "_" + source + "_" + target;
+            this.label = label;
+            this.source = source;
+            this.target = target;
+            this.weight = 1;
+            this.timeappearance = timeappearance;
+        }
+
         public String getLabel() {
             return label;
         }
@@ -462,7 +471,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                         // If Verb is annotate we need to create the ao Edge to the targetId, else it will be made to the objectId
                         // annotate is add of fivestar raking, comment or like
                         JSONObject object = filedataElement.getJSONObject("object");
-                        String nodeIdentifier = "";
+                        String targetNodeIdentifier = "";
                         String published = getValueOrEmptyString(filedataElement, "published");
                         String transactionId = getValueOrEmptyString(filedataElement, "transactionId");
                         String verb = filedataElement.get("verb").toString();
@@ -476,19 +485,19 @@ public class ActivitystreamToGraphAgent extends Agent {
                             NodeTypes targetSubtype = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
                             String objectLabel = objectSubType.getTypeString();
                             String targetNodeId = targetId;
-                            String targetName = getValueOrEmptyString(object, "targetName");
+                            String targetName = getValueOrEmptyString(object, "targetTitle");
                             if (targetSubtype.equals(NodeTypes.COMMENT)) {
-                                targetNodeId = "c_" + targetNodeId;
-                                nodeIdentifier = "c";
+//                                targetNodeId = "c_" + targetNodeId;
+                                targetNodeIdentifier = "c";
                             }
                             else if (targetSubtype.equals(NodeTypes.TAG)) {
-                                targetNodeId = "t_" + targetNodeId;
-                                nodeIdentifier = "t";
+ //                               targetNodeId = "t_" + targetNodeId;
+                                targetNodeIdentifier = "t";
                             }
                             else {
-                                targetNodeId = "m_" + targetNodeId;
-                                nodeIdentifier = "m";
-                                targetName = targetSubtype.getTypeString();
+                               // targetNodeId = "m_" + targetNodeId;
+                                targetNodeIdentifier = "m";
+//                                targetName = targetSubtype.getTypeString();
                             }
 //                            if (object.has("Properties")) {
 //                                JSONObject properties = new JSONObject(); 
@@ -501,73 +510,65 @@ public class ActivitystreamToGraphAgent extends Agent {
                                 content = java.net.URLDecoder.decode(content, "UTF-8");
                                 Document dirty = Jsoup.parse(content);
                                 if (!dirty.text().isEmpty()) {
-                                    objectLabel = dirty.text().substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, dirty.text().length())-1);
+                                    objectLabel = dirty.text().substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, dirty.text().length()));
                                 }
                             }
                             
-                            objectNodes.addElement(new Node(nodeIdentifier+ "_" + objectId, objectLabel, published, objectSubType, groupId));
+                            objectNodes.addElement(new Node(objectId, objectLabel, published, objectSubType, groupId));
                             
                             objectNodes.addElement(new Node(targetNodeId, targetName, "", targetSubtype, groupId));
-                            // this add an edge between the Actor and the new object (fivestar, comment or like)
-
-                            edges.addEdge(new Edge("a"+nodeIdentifier+"_" + transactionId, "create", actorId, targetNodeId, published));
                             // this add an edge between the Actor and the annotated object
-                            edges.addEdge(new Edge("ao_" + transactionId, verb, actorId,  nodeIdentifier+"_" + objectId, published));
+                            edges.addEdge(new Edge(verb, actorId, targetNodeId, published));
+                            
+                            // this add an edge between the Actor and the new object (fivestar, comment or like)
+//                            edges.addEdge(new Edge("ao_" + transactionId, "create", actorId,  targetNodeIdentifier+"_" + objectId, published));
+                            edges.addEdge(new Edge("create", actorId,  objectId, published));
+                            //edges.addEdge(new Edge("ao_" + transactionId, "create", actorId,  objectId, published));
                             // this add an edge between the annotation(fivestar, comment or like) and the Object worked on
-                            edges.addEdge(new Edge(nodeIdentifier+"o_" + transactionId, verb,  nodeIdentifier+"_" + objectId, targetNodeId, published));
+//                            edges.addEdge(new Edge(targetNodeIdentifier+"o_" + transactionId, "references",  targetNodeIdentifier+"_" + objectId, targetNodeId, published));
+                            edges.addEdge(new Edge("references",  objectId, targetNodeId, published));
+                            
                             networkmodes.add(targetSubtype);
                         } else if ("create".equals(verb)) {
                             String objectName = getValueOrEmptyString(object, "objectTitle");
                             if (!objectName.isEmpty()) {
-                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length())-1);
+                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length()));
                             }
                             objectNodes.addElement(new Node(objectId, objectName, published, objectSubType, groupId));
-                            edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
+                            edges.addEdge(new Edge(verb, actorId, objectId, published));
+                            //edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
                         } else if ("added".equals(verb)) {
-                            Integer sourceType = objectSubType.getTypeNumber();
-                            String sourceIdentifier;
-                            if (sourceType == 0 || sourceType == 50 || sourceType == 51) {
-                                sourceIdentifier = "a";
-                            }
-                            else {
-                                sourceIdentifier = "o";
-                            }
                             NodeTypes targetSubtype = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
-                            Integer targetType = targetSubtype.getTypeNumber();
-                            String targetIdentifier;
-                            if (targetType == 0 || targetType == 50 || targetType == 51) {
-                                targetIdentifier = "a";
-                            }
-                            else {
-                                targetIdentifier = "o";
-                            }
                             String targetId = getValueOrEmptyString(object, "targetId");
                             String objectTitle = getValueOrEmptyString(object, "objectTitle");
                             String targetTitle = getValueOrEmptyString(object, "targetTitle");
                             if (!objectTitle.isEmpty()) {
-                                objectTitle = objectTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectTitle.length())-1);
+                                objectTitle = objectTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectTitle.length()));
                             }
                             if (!targetTitle.isEmpty()) {
-                                targetTitle = targetTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, targetTitle.length())-1);
+                                targetTitle = targetTitle.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, targetTitle.length()));
                             }
 
                             networkmodes.add(targetSubtype);
                             objectNodes.addElement(new Node(objectId, objectTitle, published, objectSubType, groupId));
                             objectNodes.addElement(new Node(targetId, targetTitle, published, targetSubtype, groupId));
-                            edges.addEdge(new Edge("a" + sourceIdentifier + "_" + transactionId, verb, actorId, objectId, published));
-                            edges.addEdge(new Edge(sourceIdentifier + targetIdentifier + "_" + transactionId, verb, objectId, targetId, published));
-                            edges.addEdge(new Edge("a" + targetIdentifier + "_" + transactionId, verb, actorId, targetId, published));
+                            edges.addEdge(new Edge(verb, actorId, objectId, published));
+                            edges.addEdge(new Edge(verb, objectId, targetId, published));
+                            edges.addEdge(new Edge(verb, actorId, targetId, published));
                         } else if ("upload".equals(verb)) {
                             String objectName = getValueOrEmptyString(object, "objectTitle");
                             if (!objectName.isEmpty()) {
-                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length())-1);
+                                objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length()));
                             }
                             objectNodes.addElement(new Node(objectId, objectName, published, objectSubType, groupId));
-                            edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
+                           
+                            edges.addEdge(new Edge(verb, actorId, objectId, published));
+                            //edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
                         }
                         else {
                             objectNodes.addElement(new Node(objectId, getValueOrEmptyString(object, "objectTitle"), published, objectSubType, groupId));
-                            edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
+                            edges.addEdge(new Edge(verb, actorId, objectId, published));
+                           // edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
                         }
                     }
                 }
