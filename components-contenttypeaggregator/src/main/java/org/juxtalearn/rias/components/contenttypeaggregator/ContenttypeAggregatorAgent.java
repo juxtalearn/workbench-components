@@ -4,8 +4,14 @@ import info.collide.sqlspaces.commons.Field;
 import info.collide.sqlspaces.commons.Tuple;
 import info.collide.sqlspaces.commons.TupleSpaceException;
 
+import org.juxtalearn.rias.components.commons.NodeTypes;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import org.json.simple.JSONArray;
@@ -15,47 +21,68 @@ import org.json.simple.parser.ParseException;
 
 import eu.sisob.components.framework.Agent;
 
-public class ContentTypeAggregatorAgent extends Agent {
+public class ContenttypeAggregatorAgent extends Agent {
 
-	protected TreeSet deleteType;
+	protected TreeSet<String> deleteType;
 
 	protected String graphData;
 
 	protected Tuple fetchedTuple, commandTuple;
-	/* delete nodes or edges? */
-	protected boolean deleteNodes = true;
-	/* delete entries or keep them */
-	protected boolean deleteEntries = true;
 
-	public ContentTypeAggregatorAgent(Tuple commandTuple, String serverlocation,
-			int port) {
+	protected JSONArray outputData = new JSONArray();
+	protected HashMap<String, JSONObject> nodeMap = new HashMap<>();
+
+	public ContenttypeAggregatorAgent(Tuple commandTuple,
+			String serverlocation, int port) {
 		super(commandTuple, serverlocation, port);
 		this.commandTuple = commandTuple;
 		Tuple dataTemplate = new Tuple(commandTuple.getField(0).getValue()
 				.toString(), 1, commandTuple.getField(5).getValue().toString(),
 				Field.createWildCardField());
 		setDataTupleStructure(dataTemplate);
+	}
 
-		String[] params = this.getCommandTupleStructure().getField(6)
-				.getValue().toString().split(",");
-		/* TODO what about multiple params (more than nodes/edges)? */
-		if (!params[params.length - 2].equals("Nodes")) {
-			deleteNodes = false;
+	private void addToType(
+			HashMap<String, HashMap<String, Integer>> occurrences,
+			String nodeId, String type) {
+		if (!occurrences.containsKey(nodeId)) {
+			occurrences.put(nodeId, new HashMap<String, Integer>());
 		}
-		if (params[params.length - 1].equals("false")) {
-			deleteEntries = false;
+		HashMap<String, Integer> counter = occurrences.get(nodeId);
+		if (counter.containsKey(type)) {
+			counter.put(type, counter.get(type) + 1);
+			logger.info("Add +1 for counter of \""+nodeId+"\" | Type: "+type);
+		} else {
+			counter.put(type, 1);
+			logger.info("Add 1 for counter of \""+nodeId+ "\" | Type: "+type);
+		}
+	}
+
+	private void writeJsonOutputNode(String id, HashMap<String, Integer> counter) {
+		JSONObject node = nodeMap.get(id);
+		JSONObject newNode = new JSONObject();
+		newNode.put("id", id);
+		newNode.put("label", (String) node.get("label"));
+		newNode.put("type", (String) node.get("type"));
+		/*String[] time = (String[]) node.get("timeappearence");
+		newNode.put("timeappearence", time);e
+		logger.info("Time: "+node.get("timeappearence")+" | "+time);*/
+		for(Map.Entry e : counter.entrySet()){
+			logger.info("id: "+id+" | "+e.getKey()+ " = "+e.getValue());
 		}
 
-		// logger.info("Delete what? => " + params[params.length-1] +
-		// " | deleteNodes: "+deleteNodes);
-		String[] deleteTypeStrings = params[0].split(";");
-
-		deleteType = new TreeSet<String>();
-		for (int i = 0; i < deleteTypeStrings.length; i++) {
-			deleteType.add(deleteTypeStrings[i]);
+		for (NodeTypes nodeType : NodeTypes.values()) {
+			if (!nodeType.isUser()) {
+				logger.info("Contains \""+nodeType.getTypeString()+"\"? "+counter.containsKey(nodeType.getTypeString()));
+				if (counter.containsKey(nodeType.getTypeString())) {
+					newNode.put(nodeType.getTypeString(),
+							counter.get(nodeType.getTypeString()));
+				} else {
+					newNode.put(nodeType.getTypeString(), 0);
+				}
+			}
 		}
-		logger.info("Type(s) to delete: " + deleteType.toString());
-
+		outputData.add(newNode);
 	}
 
 	@SuppressWarnings(value = { "unchecked" })
@@ -81,79 +108,83 @@ public class ContentTypeAggregatorAgent extends Agent {
 				indicateError(e.getMessage(), e);
 			}
 			if (jsonGraphdata != null) {
-				/* delete nodes by type */
 				JSONObject data = (JSONObject) jsonGraphdata.get("data");
-				JSONArray oldData = null;
-				JSONArray newData = new JSONArray();
 
-				if (deleteNodes) {
-					oldData = (JSONArray) data.get("nodes");
-				} else {
-					oldData = (JSONArray) data.get("edges");
-				}
+				JSONArray nodes = (JSONArray) data.get("nodes");
+				JSONArray edges = (JSONArray) data.get("edges");
 
-				for (Object rawelement : oldData) {
-					JSONObject element = (JSONObject) rawelement;
-					if (element.containsKey("type")) {
-						String nodeType = (String) element.get("type");
-
-						// delete or keep them?
-						if (deleteEntries) {
-							// delete
-							if (!deleteType.contains(nodeType)) {
-								newData.add(element);
-							}
-						} else {
-							// keep
-							if (deleteType.contains(nodeType)) {
-								newData.add(element);
-							}
-						}
-					} else {
-						/*
-						 * TODO nodes/edges with no type-property remain in data
-						 * (?!)
-						 */
-						// logger.info("No type => add it as well");
-						newData.add(element);
-					}
-				}
-
-				if (deleteNodes) { 
-					// look at the edges
-					JSONArray oldEdges = (JSONArray) data.get("edges");
-					HashMap<String, Boolean> hm = new HashMap<>();
-					JSONArray newEdges = new JSONArray();
-					for (Object rawelement : newData) {
-						JSONObject element = (JSONObject) rawelement;
-						String nodeId = element.get("id").toString();
-						hm.put(nodeId, true);
-					}
-
-					for (Object rawEdge : oldEdges) {
-						JSONObject edge = (JSONObject) rawEdge;
-						String source = edge.get("source").toString();
-						String target = edge.get("target").toString();
-						if (hm.containsKey(source) && hm.containsKey(target)) {
-							newEdges.add(edge);
+				List<String> userNodeIds = new ArrayList<String>();
+				for (Object rawNode : nodes) {
+					JSONObject node = (JSONObject) rawNode;
+					if (node.containsKey("objectType")) {
+						String nodeType = (String) node.get("objectType");
+						String nodeId = (String) node.get("id");
+						nodeMap.put(nodeId, node);
+						NodeTypes enumType = NodeTypes.getEnum(nodeType);
+						if (enumType.isUser()) {
+							userNodeIds.add(nodeId);
 						}
 					}
-
-					/* replace data */
-					data.put("nodes", newData);
-					data.put("edges", newEdges);
-				} else {
-					data.put("edges", newData);
+				}
+				
+				HashMap<String, HashMap<String, Integer>> occurrences = new HashMap<>();
+				for (Object rawEdge : edges) {
+					JSONObject edge = (JSONObject) rawEdge;
+					String source = edge.get("source").toString();
+					String target = edge.get("target").toString();
+					String edgeType = edge.get("type").toString();
+					String type = null;
+					JSONObject node = null;
+					if (userNodeIds.contains(source)) {
+						node = nodeMap.get(target);
+						type = (String) node.get("objectType");
+						addToType(occurrences, source, type);
+					} else if (userNodeIds.contains(target)) {
+						node = nodeMap.get(source);
+						//logger.info("Add target: ");
+						type = (String) node.get("objectType");
+						addToType(occurrences, target, type);
+					}
 				}
 
-				logger.info("Size before: " + oldData.size() + " - after "
-						+ newData.size());
+				Iterator<Entry<String, HashMap<String, Integer>>> it = occurrences
+						.entrySet().iterator();
+				while (it.hasNext()) {
+					Map.Entry<String, HashMap<String, Integer>> pair = (Map.Entry<String, HashMap<String, Integer>>) it
+							.next();
+					String id = pair.getKey();
+					HashMap<String, Integer> counter = pair.getValue();
+					writeJsonOutputNode(id, counter);
+					it.remove(); // avoids a ConcurrentModificationException
+				}
 
-				/* write/store changes */
+				// update metadata
+				JSONObject metadata = (JSONObject) jsonGraphdata.get("metadata");
+				JSONArray measures = (JSONArray) metadata.get("measures");
+				for (NodeTypes nodeType : NodeTypes.values()) {
+					if (!nodeType.isUser()) {
+						JSONObject newMeasure = new JSONObject();
+						newMeasure.put("title", nodeType.getTypeString());
+						newMeasure.put("description", nodeType.getTypeString());
+						newMeasure.put("class", "node");
+						newMeasure.put("property", nodeType.getTypeString());
+						newMeasure.put("type", "integer");
+						measures.add(newMeasure);
+					}
+				}
+				
+				/* store changes */
+				jsonGraphdata.put("data", outputData);
 				((JSONObject) jsonFiledata.get(0)).put("filedata",
 						jsonGraphdata.toJSONString());
 				graphData = jsonFiledata.toJSONString();
-				// logger.info("GraphData: "+graphData.toString());
+				/* write/store changes */
+				/*
+				 * ((JSONObject) jsonFiledata.get(0)).put("filedata",
+				 * jsonGraphdata.toJSONString()); graphData =
+				 * jsonFiledata.toJSONString(); //
+				 * logger.info("GraphData: "+graphData.toString());
+				 */
 			}
 		}
 	}

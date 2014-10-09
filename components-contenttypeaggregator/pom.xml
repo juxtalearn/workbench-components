@@ -22,5 +22,10 @@
 			<artifactId>components-framework</artifactId>
 			<version>c-1.0.2-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.juxtalearn.rias</groupId>
+			<artifactId>components-commons</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>
