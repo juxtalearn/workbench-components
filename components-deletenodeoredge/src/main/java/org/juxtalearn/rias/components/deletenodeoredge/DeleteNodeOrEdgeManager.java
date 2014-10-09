@@ -51,12 +51,12 @@ public class DeleteNodeOrEdgeManager extends AgentManager {
                 JSONArray outputs = new JSONArray();
                 outputs.add(new Output("out_1","out data"));
                 JSONArray fields = new JSONArray();
-                fields.add(new IntField("Type(s): ", "value1", true));
+                fields.add(new IntField("Elements: ", "value1", true));
+                fields.add(new SelectField("Attribute:", "elementattribute", true, new String[]{"type","id"}));
                 fields.add(new SelectField("Elements to be deleted:", "elementtype", true, new String[]{"Nodes","Edges"}));
-                fields.add(new BooleanField("Delete these types?:", "invertdeletion", true, true));
-                //fields.add(new IntField("Target Mode", "value2", true));
-                String description = "This filter deletes every node/edge of transferred type(s)." ;
-                String shortDescription_legend = "Deletes all nodes/edges of transferred type(s).";
+                fields.add(new BooleanField("Delete these elements?:", "invertdeletion", true, true));
+                String description = "This filter deletes every node/edge of transferred attributes.";
+                String shortDescription_legend = "Deletes all nodes/edges of transferred attributes.";
                 
                 Container container = new Container(shortDescription_legend,description,inputs,outputs,fields);
                 Filter filter = new Filter("Delete Node/Edge", "Tools", container);

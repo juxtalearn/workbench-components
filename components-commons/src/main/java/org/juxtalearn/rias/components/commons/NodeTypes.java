@@ -64,7 +64,8 @@ public enum NodeTypes {
         return UNKNOWN;
     }
 
-	public boolean IsUser() {
+	public boolean isUser() {
+
 		return isUser;
 	}
 }

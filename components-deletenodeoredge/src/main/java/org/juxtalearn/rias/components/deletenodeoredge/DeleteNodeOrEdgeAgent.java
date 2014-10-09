@@ -17,7 +17,7 @@ import eu.sisob.components.framework.Agent;
 
 public class DeleteNodeOrEdgeAgent extends Agent {
 
-	protected TreeSet deleteType;
+	protected TreeSet<String> values;
 
 	protected String graphData;
 
@@ -26,6 +26,10 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 	protected boolean deleteNodes = true;
 	/* delete entries or keep them */
 	protected boolean deleteEntries = true;
+	/* which node attribute to look for? */
+	protected String attribute;
+	/* transmitted values */
+	protected String[] valueStrings;
 
 	public DeleteNodeOrEdgeAgent(Tuple commandTuple, String serverlocation,
 			int port) {
@@ -38,6 +42,9 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 
 		String[] params = this.getCommandTupleStructure().getField(6)
 				.getValue().toString().split(",");
+
+		attribute = params[1];
+
 		/* TODO what about multiple params (more than nodes/edges)? */
 		if (!params[params.length - 2].equals("Nodes")) {
 			deleteNodes = false;
@@ -48,13 +55,61 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 
 		// logger.info("Delete what? => " + params[params.length-1] +
 		// " | deleteNodes: "+deleteNodes);
-		String[] deleteTypeStrings = params[0].split(";");
+		valueStrings = params[0].split(";");
+	}
 
-		deleteType = new TreeSet<String>();
-		for (int i = 0; i < deleteTypeStrings.length; i++) {
-			deleteType.add(deleteTypeStrings[i]);
+	protected void determineValues(String[] valueStrings, JSONArray edges) {
+		values = new TreeSet<String>();
+		for (int i = 0; i < valueStrings.length; i++) {
+			values.add(valueStrings[i]);
 		}
-		logger.info("Type(s) to delete: " + deleteType.toString());
+		if ("id".equals(attribute)) {
+			for (Object rawEdge : edges) {
+				JSONObject edge = (JSONObject) rawEdge;
+				String source = edge.get("source").toString();
+				String target = edge.get("target").toString();
+				for (int i = 0; i < valueStrings.length; i++) {
+					if (source.equals(valueStrings[i])) {
+						values.add(target);
+					} else if(target.equals(valueStrings[i])) {
+						values.add(source);
+					}
+				}
+			}
+		} else {
+			for (int i = 0; i < valueStrings.length; i++) {
+				values.add(valueStrings[i]);
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected JSONArray filterNodes(JSONArray data) {
+		JSONArray newData = new JSONArray();
+		for (Object rawelement : data) {
+			JSONObject element = (JSONObject) rawelement;
+
+			if (element.containsKey(attribute)) {
+				String nodeAttribute = (String) element.get(attribute);
+				// delete or keep them?
+				if (deleteEntries) {
+					// delete
+					if (!values.contains(nodeAttribute)) {
+						newData.add(element);
+					}
+				} else {
+					// keep
+					if (values.contains(nodeAttribute)) {
+						newData.add(element);
+					}
+				}
+			} else {
+				/* TODO shall nodes/edges with no type-property remain in data */
+				// logger.info("No type => add it as well");
+				newData.add(element);
+			}
+		}
+		return newData;
 
 	}
 
@@ -75,55 +130,33 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 
 			JSONObject jsonGraphdata = null;
 			try {
-				Object o = parser.parse(fileDataString);
 				jsonGraphdata = (JSONObject) parser.parse(fileDataString);
 			} catch (ParseException e) {
 				indicateError(e.getMessage(), e);
 			}
+			
 			if (jsonGraphdata != null) {
-				/* delete nodes by type */
 				JSONObject data = (JSONObject) jsonGraphdata.get("data");
 				JSONArray oldData = null;
-				JSONArray newData = new JSONArray();
-
+				
 				if (deleteNodes) {
 					oldData = (JSONArray) data.get("nodes");
 				} else {
 					oldData = (JSONArray) data.get("edges");
 				}
 
-				for (Object rawelement : oldData) {
-					JSONObject element = (JSONObject) rawelement;
-					if (element.containsKey("type")) {
-						String nodeType = (String) element.get("type");
-
-						// delete or keep them?
-						if (deleteEntries) {
-							// delete
-							if (!deleteType.contains(nodeType)) {
-								newData.add(element);
-							}
-						} else {
-							// keep
-							if (deleteType.contains(nodeType)) {
-								newData.add(element);
-							}
-						}
-					} else {
-						/*
-						 * TODO nodes/edges with no type-property remain in data
-						 * (?!)
-						 */
-						// logger.info("No type => add it as well");
-						newData.add(element);
-					}
-				}
-
-				if (deleteNodes) { 
+				determineValues(valueStrings, (JSONArray) data.get("edges"));
+				
+				logger.info("Values (" + attribute + ") to delete/keep: "
+						+ values.toString());
+				
+				JSONArray newData = filterNodes(oldData);
+				if (deleteNodes) {
 					// look at the edges
 					JSONArray oldEdges = (JSONArray) data.get("edges");
-					HashMap<String, Boolean> hm = new HashMap<>();
+					HashMap<String, Boolean> hm = new HashMap<String,Boolean>();
 					JSONArray newEdges = new JSONArray();
+					// prepare hashmap for nodeIds of the surviving nodes
 					for (Object rawelement : newData) {
 						JSONObject element = (JSONObject) rawelement;
 						String nodeId = element.get("id").toString();
@@ -142,6 +175,7 @@ public class DeleteNodeOrEdgeAgent extends Agent {
 					/* replace data */
 					data.put("nodes", newData);
 					data.put("edges", newEdges);
+					logger.info("(Deleted Nodes) Edge size before: "+oldEdges.size()+ " - "+newEdges.size());
 				} else {
 					data.put("edges", newData);
 				}
