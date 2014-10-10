@@ -129,14 +129,11 @@ public class VisualizationToServer extends Agent {
 			String[] params = parameters.split(",");
 			ts.write(new Tuple(this.commandTupleStructure
 					.getField(0).getValue().toString(), params[0], params.length>1?params[1]:""));
-			logger.info("*"+authToken);
 			if (params.length > 2) {
-				logger.info("*"+authToken);
 				if ( !"".equals(params[2].trim())) {
 					authToken = params[2];
 					
 				}
-				logger.info("**"+authToken);
 			}
 		}
 	}
@@ -241,6 +238,7 @@ public class VisualizationToServer extends Agent {
 						.toString());
 		
 		File jsHome = new File(data.get("folder").toString());
+		logger.info("jsHome: " + jsHome); //DEBUG
 		// get html File
 		File htmlFile = jsHome.listFiles(new FileFilter() {
 			@Override
@@ -248,7 +246,7 @@ public class VisualizationToServer extends Agent {
 				return pathname.getName().endsWith(".html");
 			};
 		})[0];
-
+		logger.info("HTMLfile:"+htmlFile.getAbsolutePath());
 		// write css and js files to
 		Document htmlDoc = Jsoup.parse(htmlFile, "UTF-8", "http://localhost/");
 		// Html Head
@@ -260,7 +258,7 @@ public class VisualizationToServer extends Agent {
 			// old
 			// Element nodeAttr = (Element) htmlHead.childNodes().get(i);
 			Node nodeAttr = htmlHead.childNode(i);
-			if (nodeAttr.nodeName() == "script") {
+			if ("script".equals(nodeAttr.nodeName())) {
 
 				if (nodeAttr.hasAttr("src")) {
 					// javascript file
@@ -269,7 +267,7 @@ public class VisualizationToServer extends Agent {
 
 						// get SRC Value
 						String jsFilePath = data.get("folder").toString() + nodeAttr.attr("src");
-
+						logger.info("jsFilePath:" + jsFilePath); //DEBUG
 						try {
 							// Load JS-File and Minify it
 							FileReader file = new FileReader(jsFilePath);
@@ -294,7 +292,7 @@ public class VisualizationToServer extends Agent {
 						}
 					}
 				}
-			} else if (nodeAttr.nodeName() == "link") {
+			} else if ("link".equals(nodeAttr.nodeName())) {
 				// CSS Files
 				if (!nodeAttr.attr("href").startsWith("http")) {
 					// get HREF Value

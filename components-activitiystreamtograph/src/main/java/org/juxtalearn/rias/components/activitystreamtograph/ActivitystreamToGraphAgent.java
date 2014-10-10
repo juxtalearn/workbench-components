@@ -450,7 +450,6 @@ public class ActivitystreamToGraphAgent extends Agent {
                 // Edit by Oliver: This is wrong, but separate lists will be kept for separation reasons
                 NodeList actorNodes = new NodeList();
                 NodeList objectNodes = new NodeList();
-
                 JSONArray filedata = new JSONArray(fetchedTupleData.get("filedata").toString());
                 for (int i = 0; i < filedata.length(); i++) {
                     String s = filedata.getString(i);
