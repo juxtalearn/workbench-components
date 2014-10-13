@@ -112,7 +112,9 @@ public class VisualizationToServer extends Agent {
 						//getPostURL(clipitRequestTuple);
 				String returnId = clipitRequestTuple.getField(2).getValue()
 						.toString();
-				postToURL(url, returnId, data, 5);
+				String authToken = clipitRequestTuple.getField(3).getValue()
+                                        .toString();
+				postToURL(url, returnId, data, 5,authToken);
 			}
 			
 		} catch (TupleSpaceException e) {
@@ -156,14 +158,16 @@ public class VisualizationToServer extends Agent {
 			
 			Tuple clipitRequestTuple = ts.take(new Tuple(
 					this.commandTupleStructure.getField(0).getValue()
-							.toString(), String.class, String.class));
+							.toString(), String.class, String.class, String.class));
 
 			if (clipitRequestTuple != null) {
 				String url = clipitRequestTuple.getField(1).getValue().toString(); 
 //						getPostURL(clipitRequestTuple);
 				String returnId = clipitRequestTuple.getField(2).getValue()
 						.toString();
-				String returnValue = postToURL(url, returnId, data, 3);
+				String authToken = clipitRequestTuple.getField(3).getValue().toString();
+				String returnValue = postToURL(url, returnId, data, 3,authToken);
+				
 				logger.fine("Remote server returned:\"" + returnValue +"\"");
 			}
 
@@ -190,7 +194,7 @@ public class VisualizationToServer extends Agent {
 	}
 
 	public String postToURL(String urlString, String returnId, String data,
-			int status) throws IOException {
+			int status, String authToken) throws IOException {
 		if (!urlString.startsWith("http://")
 				&& !urlString.startsWith("https://")) {
 			urlString = "http://" + urlString;
