@@ -54,6 +54,7 @@
 				ReturnId		= req.body.ReturnId,		//not used
 				AnalysisData	= new Buffer(req.body.AnalysisData, 'base64').toString('utf-8'),	//Data to Analyse
 				ReturnURL		= req.body.ReturnURL,
+				AuthToken       = req.body.AuthToken,
 				run_uuid		= uuid.v4();				//a new run UUID
 			ts.read(new TS.Tuple([TemplateId, 3, TS.fString, TS.fString, TS.fString]), function(template) {
 				/**
@@ -106,7 +107,8 @@
 				var ClipitRequestsTuple = new TS.Tuple([
 					run_uuid,
 					ReturnURL,
-					ReturnId
+					ReturnId,
+					AuthToken
 				]);
 				var clipitRequestTupleSpace = new TS.TupleSpace({ host: config.tsconfig.host, port: config.tsconfig.port, space: 'ClipitRequests'}, function() {
 					clipitRequestTupleSpace.write(ClipitRequestsTuple, function() {
