@@ -169,6 +169,8 @@ public class VisualizationToServer extends Agent {
 				String returnValue = postToURL(url, returnId, data, 3,authToken);
 				
 				logger.fine("Remote server returned:\"" + returnValue +"\"");
+			} else {
+			    logger.severe("No RequestTuple found!");
 			}
 
 			this.indicateDone();
@@ -200,11 +202,11 @@ public class VisualizationToServer extends Agent {
 			urlString = "http://" + urlString;
 		}
 		URL url = new URL(urlString);
-		logger.finest("Contacting: "+urlString + " ReturnID="+returnId + " statuscode="+status + " auth_token="+authToken);
+		logger.finest("Contacting: "+urlString + " return_id="+returnId + " status_code="+status + " auth_token="+authToken);
 
-		String body = "returnId=" + URLEncoder.encode(returnId, "UTF-8") + "&"
+		String body = "return_id=" + URLEncoder.encode(returnId, "UTF-8") + "&"
 				+ "data=" + URLEncoder.encode(Base64.encodeToString(data.getBytes(), true), "UTF-8") + "&"
-				+ "statuscode=" + URLEncoder.encode(Integer.toString(status), "UTF-8") +"&" 
+				+ "status_code=" + URLEncoder.encode(Integer.toString(status), "UTF-8") +"&" 
 				+ "auth_token=" + URLEncoder.encode(authToken,"UTF-8");
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
@@ -242,7 +244,6 @@ public class VisualizationToServer extends Agent {
 						.toString());
 		
 		File jsHome = new File(data.get("folder").toString());
-		logger.info("jsHome: " + jsHome); //DEBUG
 		// get html File
 		File htmlFile = jsHome.listFiles(new FileFilter() {
 			@Override
@@ -250,7 +251,6 @@ public class VisualizationToServer extends Agent {
 				return pathname.getName().endsWith(".html");
 			};
 		})[0];
-		logger.info("HTMLfile:"+htmlFile.getAbsolutePath());
 		// write css and js files to
 		Document htmlDoc = Jsoup.parse(htmlFile, "UTF-8", "http://localhost/");
 		// Html Head

@@ -60,6 +60,7 @@ public class VisualizationToServerManager extends AgentManager{
 	public static void main(String[] args) {
         //AgentManager proManager = new VisualizationToServerManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Visualization To Server", String.class, String.class), VisualizationToServer.class.getName(), "localhost", 2525);
         AgentManager proManager = new VisualizationToServerManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Visualization To Server", String.class, String.class), VisualizationToServer.class.getName(), "192.168.1.21", 32525);
+        //AgentManager proManager = new VisualizationToServerManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Visualization To Server", String.class, String.class), VisualizationToServer.class.getName(), "analyticstk.rias-institute.eu", 2525);
         proManager.initialize();
         Thread runtime = new Thread(proManager);
         runtime.start();
