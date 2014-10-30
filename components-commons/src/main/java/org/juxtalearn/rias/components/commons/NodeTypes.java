@@ -1,40 +1,44 @@
 package org.juxtalearn.rias.components.commons;
 
-
 public enum NodeTypes {
-    ACTOR("actor", 0, true),
-    USER("ClipitUser",0, true),
-    FILE("ClipitFile", 1, false),
-    BLOG("blog", 2, false),
-    COMMENT("ClipitComment", 3, false),
-    FIVESTAR("fivestar", 4, false),
-    ACTIVITY("ClipitActivity", 5, false),
-    GROUP("ClipitGroup", 6, false),
-    COURSE("clipit_course", 7, false),
-    MESSAGE("ClipitChat", 8, false),
-    VIDEO("ClipitVideo",9, false),
-    NONE("none", 10, false),
-    POST("ClipitPost", 11, false),
-    TASK("ClipitTask",12, false),
-    STORYBOARD("ClipitStoryboard",13, false),
-    MEMBER("member_of_site", 15, false),
-    PERFORMANCE("ClipitPerformance",33, false),
-    READYET("readYet", 20, false),
-    SIMPLETYPE("simpletype", 25, false),
-    TRICKYTOPIC("ClipitTrickyTopic",31, false),
-    TAG("ClipitTag",32, false),
-    TEACHER("teacher",50, true),
-    STUDENT("student",51, true),
-    UNKNOWN("Unknown",100, false);
+    ACTOR("actor", 0, true,false),
+    USER("ClipitUser", 0, true,false),
+    FILE("ClipitFile", 1, false,true),
+    BLOG("blog", 2, false,false),
+    COMMENT("ClipitComment", 3, false,true),
+    FIVESTAR("fivestar", 4, false,false),
+    ACTIVITY("ClipitActivity", 5, false,false),
+    GROUP("ClipitGroup", 6, false, false),
+    COURSE("clipit_course", 7, false,false),
+    MESSAGE("ClipitChat", 8, false,true),
+    VIDEO("ClipitVideo", 9, false,true),
+    NONE("none", 10, false,false),
+    POST("ClipitPost", 11, false,true),
+    TASK("ClipitTask", 12, false, false),
+    STORYBOARD("ClipitStoryboard", 13, false,true),
+    MEMBER("member_of_site", 15, false,false),
+    PERFORMANCE("ClipitPerformance", 33, false,false),
+    READYET("readYet", 20, false,false),
+    SIMPLETYPE("simpletype", 25, false,false),
+    TRICKYTOPIC("ClipitTrickyTopic", 31, false,false),
+    TAG("ClipitTag", 32, false,true),
+    TEACHER("teacher", 50, true,false),
+    STUDENT("student", 51, true,false),
+    UNKNOWN("Unknown", 100, false,false);
 
     private String typeString;
+
     private int typeNumber;
+
     private boolean isUser;
 
-    private NodeTypes(String typeString, int typenumber, boolean isUser) {
+    private boolean useAsMeasure;
+
+    private NodeTypes(String typeString, int typenumber, boolean isUser, boolean useAsMeasure) {
         this.typeString = typeString;
         this.typeNumber = typenumber;
         this.isUser = isUser;
+        this.useAsMeasure = useAsMeasure;
     }
 
     public String getTypeString() {
@@ -53,7 +57,7 @@ public enum NodeTypes {
         }
         return null;
     }
-    
+
     public static NodeTypes getEnum(String typeString) {
         NodeTypes[] arr = NodeTypes.values();
         for (int i = 0; i < arr.length; i++) {
@@ -64,8 +68,13 @@ public enum NodeTypes {
         return UNKNOWN;
     }
 
-	public boolean isUser() {
+    public boolean isUser() {
 
-		return isUser;
-	}
+        return isUser;
+    }
+
+    public boolean isUseAsMeasure() {
+        return useAsMeasure;
+    }
+
 }

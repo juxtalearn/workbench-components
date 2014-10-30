@@ -8,9 +8,11 @@ import org.json.simple.JSONArray;
 
 import eu.sisob.components.framework.Agent;
 import eu.sisob.components.framework.AgentManager;
+import eu.sisob.components.framework.componentdescription.BooleanField;
 import eu.sisob.components.framework.componentdescription.Container;
 import eu.sisob.components.framework.componentdescription.Filter;
 import eu.sisob.components.framework.componentdescription.Input;
+import eu.sisob.components.framework.componentdescription.IntField;
 import eu.sisob.components.framework.componentdescription.Output;
 
 public class ContenttypeAggregatorManager extends AgentManager {
@@ -22,7 +24,11 @@ public class ContenttypeAggregatorManager extends AgentManager {
 
     @Override
     protected void createAgent(Tuple commandTuple) {
-        Agent agent = new ContenttypeAggregatorAgent(commandTuple, super.getServerLocation(), super.getServerPort());
+        
+        String param = commandTuple.getField(6).getValue().toString().trim();
+        boolean keepExistingMeasures = Boolean.parseBoolean(param);
+        
+        Agent agent = new ContenttypeAggregatorAgent(commandTuple, super.getServerLocation(), super.getServerPort(), keepExistingMeasures);
         this.getAgentsList().add(agent);
         agent.setAgentListener(this);
         agent.initializeAgent();
@@ -48,8 +54,11 @@ public class ContenttypeAggregatorManager extends AgentManager {
                 JSONArray outputs = new JSONArray();
                 outputs.add(new Output("out_1","out data"));
                 JSONArray fields = new JSONArray();
-                String description = "Description" ;
-                String shortDescription_legend = "shortDescription";
+                fields.add(new BooleanField("Keep existing measures: ", "value1", false));
+                
+                
+                String description = "This JxL agent aggregates the artefacts of a JxL two mode network for each actor. It refers to commons.Nodetypes for inclusion of different types." ;
+                String shortDescription_legend = "This JxL agent aggregates the artefacts of a JxL two mode network for each actor.";
                 
                 Container container = new Container(shortDescription_legend,description,inputs,outputs,fields);
                 Filter filter = new Filter("ContentType Aggregator", "Tools", container);
