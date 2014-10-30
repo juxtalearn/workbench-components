@@ -1,6 +1,8 @@
-*.class
+*/target
+.classpath
+.project
+.settings/
+console.log
+output.txt
+sqlspaces.log*
 
-# Package Files #
-*.jar
-*.war
-*.ear
