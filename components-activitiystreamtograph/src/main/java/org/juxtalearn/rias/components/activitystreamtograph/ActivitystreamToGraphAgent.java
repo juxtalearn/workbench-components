@@ -481,15 +481,15 @@ public class ActivitystreamToGraphAgent extends Agent {
 
                         if ("annotate".equals(verb)) {
                             String targetId = getValueOrEmptyString(object, "targetId");
-                            NodeTypes targetSubtype = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
+                            NodeTypes targetSubType = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
                             String objectLabel = objectSubType.getTypeString();
                             String targetNodeId = targetId;
                             String targetName = getValueOrEmptyString(object, "targetTitle");
-                            if (targetSubtype.equals(NodeTypes.COMMENT)) {
+                            if (targetSubType.equals(NodeTypes.COMMENT)) {
 //                                targetNodeId = "c_" + targetNodeId;
                                 targetNodeIdentifier = "c";
                             }
-                            else if (targetSubtype.equals(NodeTypes.TAG)) {
+                            else if (targetSubType.equals(NodeTypes.TAG)) {
  //                               targetNodeId = "t_" + targetNodeId;
                                 targetNodeIdentifier = "t";
                             }
@@ -515,7 +515,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                             
                             objectNodes.addElement(new Node(objectId, objectLabel, published, objectSubType, groupId));
                             
-                            objectNodes.addElement(new Node(targetNodeId, targetName, "", targetSubtype, groupId));
+                            objectNodes.addElement(new Node(targetNodeId, targetName, "", targetSubType, groupId));
                             // this add an edge between the Actor and the annotated object
                             edges.addEdge(new Edge(verb, actorId, targetNodeId, published));
                             
@@ -527,8 +527,8 @@ public class ActivitystreamToGraphAgent extends Agent {
 //                            edges.addEdge(new Edge(targetNodeIdentifier+"o_" + transactionId, "references",  targetNodeIdentifier+"_" + objectId, targetNodeId, published));
                             edges.addEdge(new Edge("references",  objectId, targetNodeId, published));
                             
-                            networkmodes.add(targetSubtype);
-                        } else if ("create".equals(verb)) {
+                            networkmodes.add(targetSubType);
+                        } else if ("create".equals(verb) || "remove".equals(verb)) {
                             String objectName = getValueOrEmptyString(object, "objectTitle");
                             if (!objectName.isEmpty()) {
                                 objectName = objectName.substring(0,Math.min(MAXIMUM_OBJECTNAME_LENGTH, objectName.length()));
@@ -536,7 +536,7 @@ public class ActivitystreamToGraphAgent extends Agent {
                             objectNodes.addElement(new Node(objectId, objectName, published, objectSubType, groupId));
                             edges.addEdge(new Edge(verb, actorId, objectId, published));
                             //edges.addEdge(new Edge("ao_" + transactionId, verb, actorId, objectId, published));
-                        } else if ("added".equals(verb)) {
+                        } else if ("add".equals(verb) || "message".equals(verb)) {
                             NodeTypes targetSubtype = NodeTypes.getEnum(getValueOrEmptyString(object, "targetSubtype"));
                             String targetId = getValueOrEmptyString(object, "targetId");
                             String objectTitle = getValueOrEmptyString(object, "objectTitle");
@@ -552,8 +552,9 @@ public class ActivitystreamToGraphAgent extends Agent {
                             objectNodes.addElement(new Node(objectId, objectTitle, published, objectSubType, groupId));
                             objectNodes.addElement(new Node(targetId, targetTitle, published, targetSubtype, groupId));
                             edges.addEdge(new Edge(verb, actorId, objectId, published));
-                            edges.addEdge(new Edge(verb, objectId, targetId, published));
                             edges.addEdge(new Edge(verb, actorId, targetId, published));
+                            //The interconnecting edge should be named after the relationship it represents
+                            edges.addEdge(new Edge(objectSubType + "-" + targetSubtype, objectId, targetId, published));
                         } else if ("upload".equals(verb)) {
                             String objectName = getValueOrEmptyString(object, "objectTitle");
                             if (!objectName.isEmpty()) {

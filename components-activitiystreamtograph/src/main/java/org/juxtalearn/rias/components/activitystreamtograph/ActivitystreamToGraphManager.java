@@ -65,7 +65,7 @@ public class ActivitystreamToGraphManager extends AgentManager {
 	}
 
 	public static void main(String args[]) {
-	   
+	    //AgentManager proManager = new ActivitystreamToGraphManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Activitystream Converter", String.class, String.class), ActivitystreamToGraphManager.class.getName(), "analyticstk.rias-institute.eu", 2525);
 	        AgentManager proManager = new ActivitystreamToGraphManager(new Tuple(String.class, Integer.class, Integer.class, String.class, "Activitystream Converter", String.class, String.class), ActivitystreamToGraphManager.class.getName(), "192.168.1.21", 32525);
 	        proManager.initialize();
 	        Thread runtime = new Thread(proManager);
