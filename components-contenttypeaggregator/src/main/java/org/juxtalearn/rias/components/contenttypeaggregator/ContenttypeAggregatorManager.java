@@ -12,7 +12,6 @@ import eu.sisob.components.framework.componentdescription.BooleanField;
 import eu.sisob.components.framework.componentdescription.Container;
 import eu.sisob.components.framework.componentdescription.Filter;
 import eu.sisob.components.framework.componentdescription.Input;
-import eu.sisob.components.framework.componentdescription.IntField;
 import eu.sisob.components.framework.componentdescription.Output;
 
 public class ContenttypeAggregatorManager extends AgentManager {

@@ -98,7 +98,6 @@ public class ContenttypeAggregatorAgent extends Agent {
 
             JSONObject jsonGraphdata = null;
             try {
-                Object o = parser.parse(fileDataString);
                 jsonGraphdata = (JSONObject) parser.parse(fileDataString);
             } catch (ParseException e) {
                 indicateError(e.getMessage(), e);
